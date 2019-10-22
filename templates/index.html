@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <!-- Page Content -->
+  <div class="container">
+
+        <div class="table-wrapper">
+            <div class="table-title">
+                <div class="row">
+                    <div class="col-sm-4">
+						<h2>Variants</h2>
+					</div>
+					<div class="col-sm-8">
+						<a href="/export" class="btn btn-info"><i class="fas fa-clipboard"></i> <span>Export to Excel</span></a>
+					</div>
+                </div>
+            </div>
+            <table class="table table-striped table-hover" id="mydata">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        {% for f in fields %}
+                            <th>{{ f }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variant in variants %}
+                        <tr>
+                            <td>{{loop.index}}</td>
+                            {% for f in fields %}
+                                <td>{{ variant[f] }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+{% endblock %}
