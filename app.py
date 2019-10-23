@@ -12,20 +12,35 @@ def redirect_url():
     return request.args.get('next') or request.referrer or url_for('index')
 
 @app.route("/")
+@app.route("/home")
 def index():
-    fields = ["patient_accession_no", "gene_(gene)", "chromosome",
-            "exon", "transcript", "classification"]
     find = {}
+    fields = ["_id", "patient_accession_no", "gene_(gene)", "chromosome",
+            "exon", "transcript", "classification"]
 
-    variants = Variant.objects.values().raw(find)
+    for k, v in request.args.items():
+      find[k] = v
+
+    variants = Variant.objects.values().raw( request.args )
 
     return render_template('index.html', variants=variants, fields=fields)
 
+@app.route("/variant")
+def variant():
+    variant_id = request.args.get("_id")
+    try:
+        ret = Variant.objects.values().raw({"_id": ObjectId(variant_id)}).first()
+    except:
+        print("problem " + variant_id)
+    return render_template('variant.html', variant=ret)
+
 
 @app.route("/export", methods=['GET'])
-def export_records():
-    return make_response_from_array([[1,2], [3, 4]], "csv",
-                                          file_name="export_data")
+def export():
+    #return make_response_from_array([[1,2], [3, 4]], "csv",
+    #                                      file_name="export_data")
+    pass
+
 
 if __name__ == "__main__":
     app.run(debug=True)

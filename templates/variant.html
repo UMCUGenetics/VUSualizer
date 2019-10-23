@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <!-- Page Content -->
+  <div class="container">
+        <div class="table-wrapper">
+            <div class="table-title">
+                <div class="row">
+                    <div class="col-sm-4">
+						<h2>Variant</h2>
+					</div>
+					<div class="col-sm-8">
+						<a href="/export" class="btn btn-info"><i class="fas fa-clipboard"></i> <span>Export to Excel</span></a>
+					</div>
+                </div>
+            </div>
+            <table class="table table-striped table-hover">
+                <tbody>
+                        {% for k, v in variant.items() %}
+                            {% if k == 'annotation_sources' %}
+                                <tr>
+                                    <td>{{ k.replace("_", " ")}}</td>
+                                    <td>
+                                        <table>
+                                        {% for x, y in v.items() %}
+                                                <tr>
+                                                    <td>{{ x.replace("_", " ")}}</td>
+                                                    <td>{{ y }}</td>
+                                                </tr>
+                                        {% endfor %}
+                                        </table>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td>{{ k.replace("_", " ")}}</td>
+                                    <td><a href="/home?{{ k }}={{ v }}">{{ v }}</a></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                </tbody>
+            </table>
+        </div>
+{% endblock %}
