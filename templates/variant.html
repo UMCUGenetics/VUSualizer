@@ -7,10 +7,10 @@
         <div class="table-wrapper">
             <div class="table-title">
                 <div class="row">
-                    <div class="col-sm-4">
-						<h2>Variant</h2>
+                    <div class="col-sm-8">
+						<h2>VUS</h2>
 					</div>
-					<div class="col-sm-8">
+					<div class="col-sm-4">
 						<a href="/export" class="btn btn-info"><i class="fas fa-clipboard"></i> <span>Export to Excel</span></a>
 					</div>
                 </div>
@@ -18,26 +18,35 @@
             <table class="table table-striped table-hover">
                 <tbody>
                         {% for k, v in variant.items() %}
+                            <tr>
                             {% if k == 'annotation_sources' %}
-                                <tr>
-                                    <td>{{ k.replace("_", " ")}}</td>
-                                    <td>
-                                        <table>
-                                        {% for x, y in v.items() %}
-                                                <tr>
-                                                    <td>{{ x.replace("_", " ")}}</td>
-                                                    <td>{{ y }}</td>
-                                                </tr>
-                                        {% endfor %}
-                                        </table>
-                                    </td>
-                                </tr>
+                                <td>{{ k.replace("_", " ")}}</td>
+                                <td>
+                                    <table>
+                                    {% for x, y in v.items() %}
+                                            <tr>
+                                                <td>{{ x.replace("_", " ")}}</td>
+                                                <td>{{ y }}</td>
+                                            </tr>
+                                    {% endfor %}
+                                    </table>
+                                </td>
+                            {% elif k == "labels" %}
+                                <td>{{ k.replace("_", " ")}}</td>
+                                <td>
+                                    <table>
+                                    {% for x in v %}
+                                        <tr>
+                                            <td>{{ x }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </table>
+                                </td>
                             {% else %}
-                                <tr>
                                     <td>{{ k.replace("_", " ")}}</td>
                                     <td><a href="/home?{{ k }}={{ v }}">{{ v }}</a></td>
-                                </tr>
                             {% endif %}
+                            </tr>
                         {% endfor %}
                 </tbody>
             </table>

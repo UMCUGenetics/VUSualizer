@@ -3,6 +3,8 @@ from flask_excel import make_response_from_array
 
 from bson import ObjectId  # For ObjectId to work
 import os
+import collections
+
 
 from models import Variant
 
@@ -34,6 +36,18 @@ def variant():
         print("problem " + variant_id)
     return render_template('variant.html', variant=ret)
 
+"""
+@app.route("/patient")
+def patient():
+    fields = ["_id", "patient_accession_no", "gene_(gene)", "chromosome",
+              "exon", "transcript", "classification"]
+    patient_id = request.args.get("patient_accession_no")
+    try:
+        ret = Variant.objects.values().raw({"patient_accession_no": patient_id})
+    except:
+        print("problem " + patient_id)
+    return render_template('patient.html', variants=ret, fields=fields, patient=patient_id)
+"""
 
 @app.route("/export", methods=['GET'])
 def export():

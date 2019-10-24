@@ -4,12 +4,11 @@
 
   <!-- Page Content -->
   <div class="container">
-
         <div class="table-wrapper">
             <div class="table-title">
                 <div class="row">
                     <div class="col-sm-8">
-						<h2>VUS</h2>
+						<h2>Patient {{ patient }}</h2>
 					</div>
 					<div class="col-sm-4">
 						<a href="/export" class="btn btn-info"><i class="fas fa-clipboard"></i> <span>Export to Excel</span></a>
@@ -32,12 +31,7 @@
                                 <td>{{loop.index}}</td>
                                 {% for f in fields %}
                                     <td>
-                                        {% if f == "_id" %}
-                                            <a href="/variant?{{ f }}={{ variant[f] }}">{{ variant[f] }}</a>
-
-                                        {% else %}
-                                            <a href="/home?{{ f }}={{ variant[f] }}">{{ variant[f] }}</a>
-                                        {% endif %}
+                                        <a href="/home?{{ f }}={{ variant[f] }}">{{ variant[f] }}</a>
                                     </td>
                                 {% endfor %}
                             </tr>
