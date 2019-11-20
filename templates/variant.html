@@ -19,32 +19,35 @@
                 <tbody>
                         {% for k, v in variant.items() %}
                             <tr>
-                            {% if k == 'annotation_sources' %}
+                            {% if k == "annotation_sources" or k == "labels" %}
                                 <td>{{ k.replace("_", " ")}}</td>
                                 <td>
                                     <table>
                                     {% for x, y in v.items() %}
                                             <tr>
-                                                <td>{{ x.replace("_", " ")}}</td>
+                                                <td>{{ x.replace("_", " ").replace("\uff0e", ".")}}</td>
                                                 <td>{{ y }}</td>
                                             </tr>
                                     {% endfor %}
                                     </table>
                                 </td>
-                            {% elif k == "labels" %}
-                                <td>{{ k.replace("_", " ")}}</td>
-                                <td>
-                                    <table>
-                                    {% for x in v %}
-                                        <tr>
-                                            <td>{{ x }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                    </table>
-                                </td>
                             {% else %}
-                                    <td>{{ k.replace("_", " ")}}</td>
-                                    <td><a href="/home?{{ k }}={{ v }}">{{ v }}</a></td>
+                                    <td>{{ k.replace("_", " ").replace("\uff0e", ".")}}</td>
+                                    <td><a href="/home?{{ k }}={{ v }}">{{ v }}</a>
+                                    {% if k == "gene_(ensemblgene)" %}
+                                        <a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?g={{ v }}" target="_blank">
+                                            <button type="button" class="btn btn-primary btn-sm">View on Ensembl</button>
+                                        </a>
+                                    {% elif k == "omim(r)_refs" %}
+                                        <a href="https://www.omim.org/entry/{{ v }}" target="_blank">
+                                            <button type="button" class="btn btn-primary btn-sm">View on OMIM</button>
+                                        </a>
+                                    {% elif k == "dbsnp" %}
+                                        <a href="https://www.ncbi.nlm.nih.gov/snp/{{ v }}" target="_blank">
+                                            <button type="button" class="btn btn-primary btn-sm">View on dbSNP</button>
+                                        </a>
+                                    {% endif %}
+                                    </td>
                             {% endif %}
                             </tr>
                         {% endfor %}
