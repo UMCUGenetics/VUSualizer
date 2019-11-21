@@ -1,14 +1,13 @@
-from pymodm import MongoModel, EmbeddedMongoModel, fields, connect
-from pymodm.manager import QuerySet, Manager
-from pymongo.write_concern import WriteConcern
+from flask_mongoengine import MongoEngine
+from flask_login import UserMixin
 
-connect("mongodb://localhost:27017/vus", alias="vus")
 
-class Variant(MongoModel):
-  chromosome = fields.CharField()
+db = MongoEngine()
 
-  class Meta:
-    connection_alias = 'vus'
-    write_concern = WriteConcern(j=True)
-    final = True  # ignore if _cls field exists or not
+class Variant(db.DynamicDocument):
+    chromosome = db.StringField()
 
+class User(UserMixin, db.Document):
+    meta = {'collection': 'user'}
+    email = db.StringField(max_length=30)
+    password = db.StringField()

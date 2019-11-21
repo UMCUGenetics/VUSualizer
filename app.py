@@ -1,59 +1,56 @@
-from flask import Flask, render_template, request, redirect, url_for  # For flask implementation
-from flask_excel import make_response_from_array
+from flask import Flask
+from flask_mongoengine import MongoEngine, Document
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField
+from wtforms.validators import Email, Length, InputRequired
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_debugtoolbar import DebugToolbarExtension
 
-from bson import ObjectId  # For ObjectId to work
-import os
-import collections
-
-
-from models import Variant
+from models import db, User
+from views import * #index, variant, export, register, login, logout, account
 
 app = Flask(__name__)
+app.config.from_object(__name__)
+app.config['TESTING'] = True
+app.config['SECRET_KEY'] = 'vusualyzerrrrrrrr'
+app.config['MONGODB_SETTINGS'] = {
+    'db': 'vus',
+    'host': 'mongodb://localhost:27017/vus'
+}
+app.debug = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config['DEBUG_TB_PANELS'] = (
+    'flask_debugtoolbar.panels.versions.VersionDebugPanel',
+    'flask_debugtoolbar.panels.timer.TimerDebugPanel',
+    'flask_debugtoolbar.panels.headers.HeaderDebugPanel',
+    'flask_debugtoolbar.panels.request_vars.RequestVarsDebugPanel',
+    'flask_debugtoolbar.panels.template.TemplateDebugPanel',
+    'flask_debugtoolbar.panels.logger.LoggingPanel',
+    'flask_mongoengine.panels.MongoDebugPanel'
+)
 
-def redirect_url():
-    return request.args.get('next') or request.referrer or url_for('index')
+db.init_app(app)
 
-@app.route("/")
-@app.route("/home")
-def index():
-    find = {}
-    fields = ["_id", "patient_accession_no", "gene_(gene)", "chromosome",
-            "exon", "transcript", "classification"]
+DebugToolbarExtension(app)
 
-    for k, v in request.args.items():
-      find[k] = v
+app.add_url_rule('/', view_func=index)
+app.add_url_rule('/home', view_func=index)
+app.add_url_rule('/variant', view_func=variant)
+app.add_url_rule('/register', view_func=register, methods=["GET", "POST"])
+app.add_url_rule('/login', view_func=login, methods=["GET", "POST"])
+app.add_url_rule('/logout', view_func=logout)
+app.add_url_rule('/account', view_func=account)
+app.add_url_rule('/variants', view_func=variants)
 
-    variants = Variant.objects.values().raw( request.args )
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-    return render_template('index.html', variants=variants, fields=fields)
+@login_manager.user_loader
+def load_user(user_id):
+    return User.objects(pk=user_id).first()
 
-@app.route("/variant")
-def variant():
-    variant_id = request.args.get("_id")
-    try:
-        ret = Variant.objects.values().raw({"_id": ObjectId(variant_id)}).first()
-    except:
-        print("problem " + variant_id)
-    return render_template('variant.html', variant=ret)
-
-"""
-@app.route("/patient")
-def patient():
-    fields = ["_id", "patient_accession_no", "gene_(gene)", "chromosome",
-              "exon", "transcript", "classification"]
-    patient_id = request.args.get("patient_accession_no")
-    try:
-        ret = Variant.objects.values().raw({"patient_accession_no": patient_id})
-    except:
-        print("problem " + patient_id)
-    return render_template('patient.html', variants=ret, fields=fields, patient=patient_id)
-"""
-
-@app.route("/export", methods=['GET'])
-def export():
-    #return make_response_from_array([[1,2], [3, 4]], "csv",
-    #                                      file_name="export_data")
-    pass
 
 
 if __name__ == "__main__":

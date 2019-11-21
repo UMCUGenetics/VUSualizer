@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% set active_page = "variants" %}
+
+{% block content %}
+
+    <div class="table-wrapper">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="mydata">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        {% for f in fields %}
+                            <th>{{ f.replace("_", " ") }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variant in variants %}
+                        <tr>
+                            <td><a href="/variant?id={{ variant["id"] }}">{{loop.index}}</a></td>
+                            {% for f in fields %}
+                                <td>
+                                    <a href="/home?{{ f }}={{ variant[f] }}">{{ variant[f] }}</a>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="float-right">Click on any value to filter on that value.</div><br>
+
+{% endblock %}
