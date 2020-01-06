@@ -3,32 +3,58 @@
 
 {% block content %}
 
-    <div class="table-wrapper">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover" id="mydata">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        {% for f in fields %}
-                            <th>{{ f.replace("_", " ") }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for variant in variants %}
-                        <tr>
-                            <td><a href="/variant?id={{ variant["id"] }}">{{loop.index}}</a></td>
-                            {% for f in fields %}
-                                <td>
-                                    <a href="/home?{{ f }}={{ variant[f] }}">{{ variant[f] }}</a>
-                                </td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Variants</h1>
         </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="mydata">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>ID</th>
+                                    {% for f in fields %}
+                                        <th>{{ f.replace("_", " ") }}</th>
+                                    {% endfor %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for variant in variants %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td><a href={{ url_for('variant', id=variant["id"]) }}>{{ variant["id"] }}</a></td>
+                                        {% for f in fields %}
+                                            {% set param = {f: variant[f]} %}
+                                            <td>
+                                                {% if f == "patient_accession_no" %}
+                                                    <a href={{ url_for('patient', id=variant[f]) }}>{{ variant[f] }}</a>
+                                                {% elif f == "gene_(gene)" %}
+                                                    <a href={{ url_for('gene', id=variant[f]) }}>{{ variant[f] }}</a>
+                                                {% else %}
+                                                    <a href={{ url_for('variants', **param) }}>{{ variant[f] }}</a>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
-    <div class="float-right">Click on any value to filter on that value.</div><br>
+    <!-- /.container-fluid -->
 
 {% endblock %}

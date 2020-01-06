@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% set active_page = "patients" %}
+
+{% block content %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Patients</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="mydata">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Patient Accession Number</th>
+                                    <th>Total variants</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for patient in patients %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td><a href={{ url_for('patient', id=patient["_id"]|safe) }}>{{ patient["_id"] }}</a></td>
+                                        <td>{{ patient["total"] }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+{% endblock %}

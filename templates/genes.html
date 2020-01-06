@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% set active_page = "genes" %}
+
+{% block content %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Genes</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="mydata">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Gene_(gene)</th>
+                                    <th>Total variants</th>
+                                    <th>Total patients</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for gene in genes %}
+                                    <!-- count amount of patients -->
+                                    {% set temp = [] %}
+                                    {% for g in gene['variants'] %} <!--if g.patient_accession_no-->
+                                        <!-- setting to variable to prevent None from being outputted to HTML-->
+                                        {% set a = temp.append(g.patient_accession_no if g.patient_accession_no) %}
+                                    {% endfor %}
+                                    {% set total_patients = temp|length %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td><a href={{ url_for('gene', id=gene["_id"]|safe) }}>{{ gene["_id"] }}</a>
+                                        </td>
+                                        <td>{{ gene["total_variants"] }}</td>
+                                        <td>{{ total_patients }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+{% endblock %}

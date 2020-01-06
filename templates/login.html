@@ -1,18 +1,31 @@
 {% extends 'base.html' %}
 {% set active_page = "login" %}
+{% from "_formhelpers.html" import render_field %}
 
 {% block content %}
 
-    <h1>Login</h1>
-    <form action="/login" method="post">
-      <p>Email</p>
-      {{ form.email }}
-      <p>Password</p>
-      {{ form.password }}
-      {{ form.hidden_tag() }}
-      <br>
-      <br>
-      <input type="submit" value="Login">
-    </form>
+    <div class="row justify-content-center">
+        <div class="col-xl-6 col-lg-7 col-md-8 col-sm-9">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-0">
+                    <div class="p-5">
+                        <form action="/login" method="post">
+                            {{ render_field(form.email, "at", class="form-control", placeholder="Email Address") }}
+                            {{ render_field(form.password, "key", class="form-control", placeholder="Password") }}
+                            {{ form.hidden_tag() }}
+                            <input type="submit" value="Login" class="btn btn-primary btn-user btn-block">
+                        </form>
+                        <hr>
+                        <div class="text-center">
+                            <a class="small" href="#">Forgot password</a>
+                        </div>
+                        <div class="text-center">
+                            <a class="small" href="{{ url_for('register') }}">Register instead</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}

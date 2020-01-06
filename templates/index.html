@@ -2,6 +2,87 @@
 
 {% block content %}
 
-    <p>A <b>V</b>ariant of <b>U</b>nknown <b>S</b>ignificance is an variant of a gene of which the significance is unknown.</p>
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Home</h1>
+            <!--<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled"><i
+                    class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>-->
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+
+            <!-- Variant Count Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Variants</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ v }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-search fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Genes Count Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Genes</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ g }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-dna fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patients Count Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Patients</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ p }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-heartbeat fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+    </div>
+    <!-- End of Main Content -->
+
+    <!-- Footer -->
+    <footer class="sticky-footer bg-white">
+        <div class="container my-auto">
+            <div class="copyright text-center my-auto">
+                <span>Copyright &copy; UMC Utrecht 2020</span>
+            </div>
+        </div>
+    </footer>
+    <!-- End of Footer -->
+
 
 {% endblock %}
