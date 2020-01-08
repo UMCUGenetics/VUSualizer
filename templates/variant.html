@@ -32,10 +32,10 @@
                             <tbody>
                             {% for k in variant %}
                                 {% set v = variant[k] %}
-                                <tr>
-                                    {% if k in ["id", "annotation_sources", "labels"] %}
-                                        <!-- do nothing -->
-                                    {% else %}
+                                {% if k in ["id", "annotation_sources", "labels"] %}
+                                    <!-- do nothing -->
+                                {% else %}
+                                    <tr>
                                         <td>{{ k.replace("_", " ").replace("\uff0e", ".") }}</td>
                                         <td><a href="/variants?{{ k }}={{ v }}">{{ v }}</a>
                                             {% for id, url, name in external_links %}
@@ -48,8 +48,8 @@
                                                 {% endif %}
                                             {% endfor %}
                                         </td>
-                                    {% endif %}
-                                </tr>
+                                    </tr>
+                                {% endif %}
                             {% endfor %}
                             </tbody>
                         </table>

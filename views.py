@@ -5,6 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mongoengine.wtf import model_form
 from flask_admin.contrib.mongoengine import ModelView
+from flask import Blueprint, jsonify, request
+from datatable import DataTablesServer
+import json
 
 from models import Variant, User
 from forms import RegisterForm, LoginForm
@@ -22,39 +25,20 @@ def index():
 
 
 def variants():
-    fields = ["gene_(gene)", "cdna_(cnomen)", "protein_(pnomen)", "transcript", "patient_accession_no"]
-    # Variant(chromosome="uwu").save()  # Insert
-    variants = Variant.objects(__raw__=request.args)
-    # print(variants[0])
-    return render_template('variants.html', variants=variants, fields=fields)
+    fields = columns
+    return render_template('variants.html', fields=fields)
 
 
 def variant(id):
     try:
-        ret = Variant.objects(id=id)[0]
+        # ret = Variant.objects(id=id)[0]
+        return render_template('variant.html', variant=ret)
     except:
         print("problem " + id)
-    return render_template('variant.html', variant=ret)
+        return render_template('404.html')
 
 
 def patients():
-    patients = Variant.objects().aggregate(
-        {
-            '$group': {
-                '_id': '$patient_accession_no',
-                'variants': {
-                    '$push': '$_id'
-                },
-                'total': {
-                    '$sum': 1
-                }
-            }
-        }, {
-            '$sort': {
-                'total': -1
-            }
-        }
-    )
     return render_template("patients.html", patients=patients)
 
 
@@ -69,36 +53,14 @@ def patient(id):
 
 
 def genes():
-    genes = Variant.objects().aggregate(
-        {
-            '$group': {
-                '_id': '$gene_(gene)',
-                'variants': {
-                    '$push': '$$ROOT'
-                },
-                'total_variants': {
-                    '$sum': 1
-                }
-            }
-        }, {
-            '$sort': {
-                'total_variants': -1
-            }
-        }
-    )
-    return render_template('genes.html', genes=genes)
+    return render_template('genes.html')
 
 
 def gene(id):
     # as gene_(gene) cannot be an object name, need to use aggregation
     fields = ["gene_(gene)", "cdna_(cnomen)", "protein_(pnomen)", "transcript", "patient_accession_no"]
-    variants = Variant.objects().aggregate(
-        {
-            '$match': {
-                'gene_(gene)': id
-            }
-        }
-    )
+    variants = Variant.objects(__raw__={"gene_(gene)": id})
+
     return render_template('gene.html', variants=variants, fields=fields, id=id)
 
 
@@ -167,3 +129,26 @@ class VariantView(ModelView):
             'fields': ['name']
         }
     }
+
+
+columns = ['#', '_id', 'total']
+
+
+# create an app.route for your javascript. see above ^ for javascript implementation
+def get_variant_data():
+    return get_data("hgvs_genomic-level_nomenclature_(fullgnomen)")
+
+
+def get_gene_data():
+    return get_data("gene_(gene)")
+
+
+def get_patient_data():
+    return get_data("patient_accession_no")
+
+
+def get_data(group_by):
+    index_column = "_id"
+    collection = "variant"
+    results = DataTablesServer(request, columns, index_column, collection, group_by).output_result()
+    return json.dumps(results)

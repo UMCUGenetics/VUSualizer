@@ -33,7 +33,7 @@ app.config['DEBUG_TB_PANELS'] = (
 
 db.init_app(app)
 
-DebugToolbarExtension(app)
+# DebugToolbarExtension(app)
 
 app.add_url_rule('/', view_func=index)
 
@@ -54,6 +54,10 @@ app.add_url_rule('/gene/<id>', view_func=gene)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+app.add_url_rule('/_get_variant_data', view_func=get_variant_data)
+app.add_url_rule('/_get_gene_data', view_func=get_gene_data)
+app.add_url_rule('/_get_patient_data', view_func=get_patient_data)
 
 
 @login_manager.user_loader

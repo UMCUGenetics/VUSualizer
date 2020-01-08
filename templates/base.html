@@ -9,9 +9,9 @@
           rel="stylesheet">
 
     <link rel="stylesheet"
-          href="{{ url_for('static', filename = 'vendor/datatables/DataTables-1.10.20/css/jquery.dataTables.min.css') }}">
+          href="{{ url_for('static', filename = 'vendor/datatables/datatables.min.css') }}">
     <link rel="stylesheet"
-          href="{{ url_for('static', filename = 'vendor/fontawesome-free-5.12.0-web/css/all.min.css') }}">
+          href="{{ url_for('static', filename = 'vendor/fontawesome-free/css/all.min.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename = 'css/sb-admin-2.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename = 'css/style.css') }}">
@@ -63,21 +63,52 @@
 </div>
 
 <script src="{{ url_for('static', filename = 'vendor/jquery/jquery-3.4.1.min.js') }}"></script>
-<!--<script src="{{ url_for('static', filename = 'vendor/jquery-ui-1.12.1/jquery-ui.min.js') }}"></script>-->
-<script src="{{ url_for('static', filename = 'vendor/jquery-easing/jquery.easing.1.3.min.js') }}"></script>
-<script src="{{ url_for('static', filename = 'vendor/datatables/DataTables-1.10.20/js/jquery.dataTables.min.js') }}"></script>
-
-<script src="{{ url_for('static', filename = 'vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<!--<script src="{{ url_for('static', filename = 'vendor/jquery-easing/jquery.easing.min.js') }}"></script>-->
+<script src="{{ url_for('static', filename = 'vendor/datatables/datatables.min.js') }}"></script>
+<script src="{{ url_for('static', filename = 'vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename = 'vendor/popper/popper.min.js') }}"></script>
 <script src="{{ url_for('static', filename = 'vendor/chart.js/Chart.min.js') }}"></script>
-
-<script src="{{ url_for('static', filename = 'vendor/fontawesome-free-5.12.0-web/js/all.min.js') }}"></script>
-
+<script src="{{ url_for('static', filename = 'vendor/fontawesome-free/all.min.js') }}"></script>
 <!--<script src="{{ url_for('static', filename = 'js/mdb.min.js') }}"></script>-->
 <script src="{{ url_for('static', filename = 'js/sb-admin-2.js') }}"></script>
 
+
 <script>
-    $('#mydata').dataTable();
+    $('#variants').dataTable({
+        bProcessing: true,
+        bServerSide: true,
+        sPaginationType: "full_numbers",
+        bjQueryUI: true,
+        sAjaxSource: "/_get_variant_data",
+        responsive: true,
+        order: [[2, "desc"]]
+        //colReorder: true,
+        //autoFill: true
+    });
+
+    $('#genes').dataTable({
+        bProcessing: true,
+        bServerSide: true,
+        sPaginationType: "full_numbers",
+        bjQueryUI: true,
+        sAjaxSource: "/_get_gene_data",
+        responsive: true,
+        order: [[2, "desc"]]
+        //colReorder: true,
+        //autoFill: true
+    });
+
+    $('#patients').dataTable({
+        bProcessing: true,
+        bServerSide: true,
+        sPaginationType: "full_numbers",
+        bjQueryUI: true,
+        sAjaxSource: "/_get_patient_data",
+        responsive: true,
+        order: [[2, "desc"]]
+        //colReorder: true,
+        //autoFill: true
+    });
 </script>
 
 <!--  <script type="text/javascript">
