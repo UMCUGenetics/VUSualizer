@@ -1,16 +1,19 @@
-from flask import render_template, request, redirect, url_for, flash  # For flask implementation
-from flask_excel import make_response_from_array
-from bson import ObjectId  # For ObjectId to work
+from flask import render_template, request, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_mongoengine.wtf import model_form
 from flask_admin.contrib.mongoengine import ModelView
-from flask import Blueprint, jsonify, request
 from datatable import DataTablesServer
+from datatable_ajax import DataTablesServerAjax
 import json
 
 from models import Variant, User
 from forms import RegisterForm, LoginForm
+
+columns = ['#', '_id', 'total']
+
+default_fields = ["dn_no", "gene_(gene)", "hgvs_genomic-level_nomenclature_(fullgnomen)",
+                  "protein_(pnomen)", "omim(r)_refs", "omim(r)_morbid_refs"]
+default_order = {"dn_no": 1, "gene_(gene)": 1, "hgvs_genomic-level_nomenclature_(fullgnomen)": 1}
 
 
 def redirect_url():
@@ -18,24 +21,27 @@ def redirect_url():
 
 
 def index():
-    variant_count = Variant.objects().all().count()
-    patient_count = len(list(Variant.objects().aggregate({'$group': {'_id': '$patient_accession_no'}})))
+    total_count = Variant.objects().all().count()
+    variant_count = len(
+        list(Variant.objects().aggregate({'$group': {'_id': '$hgvs_genomic-level_nomenclature_(fullgnomen)'}})))
+    patient_count = len(list(Variant.objects().aggregate({'$group': {'_id': '$dn_no'}})))
     gene_count = len(list(Variant.objects().aggregate({'$group': {'_id': '$gene_(gene)'}})))
-    return render_template("index.html", v=variant_count, p=patient_count, g=gene_count)
+    return render_template("index.html", v=variant_count, p=patient_count, g=gene_count, t=total_count)
 
 
 def variants():
     fields = columns
+    if "protein" not in fields:
+        fields.append("protein")
     return render_template('variants.html', fields=fields)
 
 
 def variant(id):
-    try:
-        # ret = Variant.objects(id=id)[0]
-        return render_template('variant.html', variant=ret)
-    except:
-        print("problem " + id)
-        return render_template('404.html')
+    group_by = "hgvs_genomic-level_nomenclature_(fullgnomen)"
+    # remove group_by from the fields list as its displayed at top of page and redundant for every row
+    fields = list(filter(lambda x: x != group_by, default_fields))
+    variants = Variant.objects.aggregate({"$match": {group_by: id}}, {"$sort": default_order})
+    return render_template('variant.html', fields=fields, variants=variants, id=id)
 
 
 def patients():
@@ -43,12 +49,11 @@ def patients():
 
 
 def patient(id):
-    fields = ["gene_(gene)", "cdna_(cnomen)", "protein_(pnomen)", "transcript", "analysis"]
-    variants = []
-    try:
-        variants = Variant.objects(patient_accession_no=id)
-    except:
-        print("problem " + id)
+    group_by = "dn_no"
+    fields = list(filter(lambda x: x != group_by, default_fields))
+    # order =
+    variants = Variant.objects.aggregate({"$match": {group_by: id}}, {"$sort": default_order})
+
     return render_template('patient.html', variants=variants, fields=fields, id=id)
 
 
@@ -57,11 +62,28 @@ def genes():
 
 
 def gene(id):
-    # as gene_(gene) cannot be an object name, need to use aggregation
-    fields = ["gene_(gene)", "cdna_(cnomen)", "protein_(pnomen)", "transcript", "patient_accession_no"]
-    variants = Variant.objects(__raw__={"gene_(gene)": id})
-
+    group_by = "gene_(gene)"
+    fields = list(filter(lambda x: x != group_by, default_fields))
+    variants = Variant.objects.aggregate({"$match": {group_by: id}}, {"$sort": default_order})
     return render_template('gene.html', variants=variants, fields=fields, id=id)
+
+
+def all():
+    fields = default_fields
+    for field in request.args:  # add fields that are being filtered on with get query to the table as column
+        if field not in fields:
+            fields.append(field)
+    variants = Variant.objects.aggregate({"$match": request.args}, {"$sort": default_order}, {"$limit": 200})
+    # print(variants[0])
+    return render_template('all.html', variants=variants, fields=fields)
+
+
+def vus(id):
+    try:
+        ret = Variant.objects(id=id)[0]
+    except:
+        print("problem " + id)
+    return render_template('vus.html', variant=ret)
 
 
 def export():
@@ -131,9 +153,6 @@ class VariantView(ModelView):
     }
 
 
-columns = ['#', '_id', 'total']
-
-
 # create an app.route for your javascript. see above ^ for javascript implementation
 def get_variant_data():
     return get_data("hgvs_genomic-level_nomenclature_(fullgnomen)")
@@ -144,11 +163,18 @@ def get_gene_data():
 
 
 def get_patient_data():
-    return get_data("patient_accession_no")
+    return get_data("dn_no")
+
+
+def get_all_data():
+    index_column = "_id"
+    collection = "variant"
+    results = DataTablesServer(request, default_fields, index_column, collection).output_result()
+    return json.dumps(results, sort_keys=True, default=str)
 
 
 def get_data(group_by):
     index_column = "_id"
     collection = "variant"
     results = DataTablesServer(request, columns, index_column, collection, group_by).output_result()
-    return json.dumps(results)
+    return json.dumps(results, sort_keys=True, default=str)

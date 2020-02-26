@@ -31,17 +31,17 @@ def main():
 
     start_time = time.time()
 
-    for x in os.listdir("input"):
+    for file in os.listdir("input"):
         # To prevent opening a cached version of the file
-        if x.lower().endswith(".xlsx") and not x.lower().startswith("~"):
-            print("#####\t\tParsing {}\t\t#####".format(x))
-
+        if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
+            print("#####\t\tParsing {}\t\t#####".format(file))
             patient = {}
+            patient["dn_no"] = os.path.splitext(file)[0]
             annotation = {}
             data_headers = []
             section = ""
 
-            wb = load_workbook(filename="input/" + x)
+            wb = load_workbook(filename="input/" + file)
             sheet = wb.active
             for row in sheet:
 
@@ -87,7 +87,7 @@ def main():
                         variant.update(patient)
                         db.insert_one(variant)
 
-    print("## \t\tFinished in {0:.2f} seconds".format((time.time() - start_time) / 60))
+    print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
 
 
 main()

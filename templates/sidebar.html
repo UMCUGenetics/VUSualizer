@@ -1,8 +1,7 @@
 {% set pages = [
-    ( url_for('index'), 'home', '<i class="fas fa-home"></i> Home'),
-    ( url_for('variants'), 'variants', '<i class="fas fa-search"></i> Variants'),
-    ( '/genes', 'genes', '<i class="fas fa-dna"></i> Genes'),
-    ( url_for('patients'), 'patients', '<i class="fas fa-heartbeat"></i> Patients')
+    ( url_for('patients'), 'patients', '<i class="fas fa-heartbeat"></i> Patients'),
+    ( url_for('genes'), 'genes', '<i class="fas fa-dna"></i> Genes'),
+    ( url_for('variants'), 'variants', '<i class="fas fa-random"></i> Variants')
 ] -%}
 
 
@@ -18,12 +17,31 @@
 
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Items looping pages array -->
+
+    <li class="nav-item {% if active_page == "index" %}active{% endif %}">
+        <a class="nav-link" href={{ url_for('index') }}><span><i class="fas fa-home"></i> Home</span></a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Group by
+    </div>
+
     {% for href, id, caption in pages %}
         <li class="nav-item {% if id == active_page %}active{% endif %}">
             <a class="nav-link" href="{{ href|e }}"><span>{{ caption|safe }}</span></a>
         </li>
     {% endfor %}
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <li class="nav-item {% if active_page == "all" %}active{% endif %}">
+        <a class="nav-link" href='/aaa'><span><i class="fas fa-search"></i> List All</span></a>
+    </li>
 
     <hr class="sidebar-divider">
 

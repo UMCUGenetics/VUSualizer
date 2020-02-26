@@ -12,7 +12,7 @@ order_dict = {'asc': 1, 'desc': -1}
 
 class DataTablesServer:
 
-    def __init__(self, request, columns, index, collection, group_by):
+    def __init__(self, request, columns, index, collection, group_by=None):
         self.columns = columns
         self.index = index
         self.collection = collection
@@ -39,17 +39,24 @@ class DataTablesServer:
             i += 1
             aaData_row.append(i)
             for col, val in row.items():
-                if col == "_id":
-                    if self.group_by == "hgvs_genomic-level_nomenclature_(fullgnomen)":
-                        uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "patient_accession_no":
-                        uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "gene_(gene)":
-                        uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                else:
-                    # uwu = '<a href="/variants?{1}={0}">{0}</a>'.format(val, col)
-                    uwu = val
-                aaData_row.append(uwu)
+                if col in self.columns:
+                    uwu = ""
+                    if col == "_id":
+                        if self.group_by == "hgvs_genomic-level_nomenclature_(fullgnomen)":
+                            uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
+                        elif self.group_by == "patient_accession_no":
+                            uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
+                        elif self.group_by == "gene_(gene)":
+                            uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+                    elif col == "protein":
+                        temp = []
+                        for x in val:
+                            temp.append('<a href="/aaa?protein_(pnomen)={0}">{0}</a>'.format(x))
+                        uwu = ", ".join(temp)
+                    else:
+                        # uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
+                        uwu = val
+                    aaData_row.append(uwu)
             aaData_rows.append(aaData_row)
 
         output['aaData'] = aaData_rows
@@ -58,32 +65,44 @@ class DataTablesServer:
     def run_queries(self):
         mydb = self.dbh.vus
         pages = self.paging()  # pages has 'start' and 'length' attributes
-        filter = self.filtering()  # the term you entered into the datatable search
-        sorting = self.sorting()  # the document field you chose to sort
+        filter = self.filtering()  # the term entered into the datatable search
+        sorting = self.sorting()  # the document field chosen to sort
 
         # get result from db
         match = {"$match": filter}
-        group = {
-            "$group": {
-                "_id": "$" + self.group_by,
-                "total": {
-                    "$sum": 1
-                    # },
-                    # "data": {
-                    #    "$push": "$$ROOT"
+        group = {}
+        if self.group_by is not None:
+            group = {
+                "$group": {
+                    "_id": "$" + self.group_by,
+                    "total": {
+                        "$sum": 1
+                    }
                 }
             }
-        }
-        sort = {"$sort": sorting}
-        skip = {"$skip": pages.start}
-        limit = {"$limit": pages.length}
 
-        self.result_data = list(mydb[self.collection].aggregate([group, match, sort, skip, limit, ]))
+        if self.group_by == "hgvs_genomic-level_nomenclature_(fullgnomen)":
+            group["$group"]["protein"] = {"$addToSet": "$protein_(pnomen)"}
+        pipeline = []
 
-        # total amount
-        self.cardinality = len(list(mydb[self.collection].aggregate([group])))
-        # total amount filtered
-        self.cardinality_filtered = len(list(mydb[self.collection].aggregate([group, match])))
+        if group:
+            pipeline.append(group)
+        if filter:
+            pipeline.append(match)
+        pipeline = pipeline + [{"$sort": sorting}, {"$skip": pages.start}]
+        if pages.length >= 0:
+            pipeline.append({"$limit": pages.length})
+
+        self.result_data = list(mydb[self.collection].aggregate(pipeline))
+
+        if group:
+            # total amount unfiltered
+            self.cardinality = len(list(mydb[self.collection].aggregate([group])))
+            # total amount filtered (search bar)
+            self.cardinality_filtered = len(list(mydb[self.collection].aggregate([group, match])))
+        else:
+            self.cardinality = len(list(mydb[self.collection].find()))
+            self.cardinality_filtered = len(list(mydb[self.collection].find(filter)))
 
     def filtering(self):
         # build your filter spec
@@ -106,16 +125,13 @@ class DataTablesServer:
         if (self.request_values['iSortCol_0'] != "") and (self.request_values['iSortingCols'] > str(0)):
             order = {}
             for i in range(int(self.request_values['iSortingCols'])):
-                print('sSortDir_' + str(i))
-                print('iSortCol_' + str(i))
-                print(int(self.request_values['iSortCol_' + str(i)]))
                 order[self.columns[int(self.request_values['iSortCol_' + str(i)])]] = order_dict[
                     self.request_values['sSortDir_' + str(i)]]
-                return order
+        return order
 
     def paging(self):
         pages = namedtuple('pages', ['start', 'length'])
-        if (self.request_values['iDisplayStart'] != "") and (self.request_values['iDisplayLength'] != -1):
+        if (self.request_values['iDisplayStart'] != ""):  # and (int(self.request_values['iDisplayLength']) != -1):
             pages.start = int(self.request_values['iDisplayStart'])
             pages.length = int(self.request_values['iDisplayLength'])
         return pages

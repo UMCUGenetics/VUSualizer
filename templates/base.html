@@ -36,30 +36,6 @@
         </div>
 
     </div>
-
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Are you sure you want to log out?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href={{ url_for('logout') }}>Logout</a>
-                </div>
-            </div>
-        </div>
-
-    </div>
 </div>
 
 <script src="{{ url_for('static', filename = 'vendor/jquery/jquery-3.4.1.min.js') }}"></script>
@@ -69,54 +45,65 @@
 <script src="{{ url_for('static', filename = 'vendor/popper/popper.min.js') }}"></script>
 <script src="{{ url_for('static', filename = 'vendor/chart.js/Chart.min.js') }}"></script>
 <script src="{{ url_for('static', filename = 'vendor/fontawesome-free/all.min.js') }}"></script>
-<!--<script src="{{ url_for('static', filename = 'js/mdb.min.js') }}"></script>-->
 <script src="{{ url_for('static', filename = 'js/sb-admin-2.js') }}"></script>
 
 
 <script>
-    $('#variants').dataTable({
-        bProcessing: true,
+    $.extend(true, $.fn.dataTable.defaults, {
         bServerSide: true,
-        sPaginationType: "full_numbers",
+        bProcessing: true,
         bjQueryUI: true,
+        dom: '<"row ml-2 mb-3"B>lfrtip',
+        lengthMenu: [[10, 25, 50, 250, -1], [10, 25, 50, 250, "All"]],
+        buttons: ['colvis', 'excel', 'print', 'copy'],
+        responsive: true
+    });
+
+    $('#variants').dataTable({
         sAjaxSource: "/_get_variant_data",
-        responsive: true,
-        order: [[2, "desc"]]
-        //colReorder: true,
-        //autoFill: true
+        order: [[2, "desc"]],
     });
 
     $('#genes').dataTable({
-        bProcessing: true,
-        bServerSide: true,
-        sPaginationType: "full_numbers",
-        bjQueryUI: true,
         sAjaxSource: "/_get_gene_data",
-        responsive: true,
-        order: [[2, "desc"]]
-        //colReorder: true,
-        //autoFill: true
+        order: [[2, "desc"]],
     });
 
     $('#patients').dataTable({
-        bProcessing: true,
-        bServerSide: true,
-        sPaginationType: "full_numbers",
-        bjQueryUI: true,
         sAjaxSource: "/_get_patient_data",
-        responsive: true,
-        order: [[2, "desc"]]
-        //colReorder: true,
-        //autoFill: true
+        order: [[2, "desc"]],
     });
-</script>
 
-<!--  <script type="text/javascript">
-      $(document).ready(function () {
-          $('[data-toggle="tooltip"]').tooltip();
-      });
-  </script>
-  -->
+    $('#variant').dataTable({
+        bServerSide: false,
+        order: [[1, "asc"]],
+    });
+
+    $('#patient').dataTable({
+        bServerSide: false,
+        order: [[1, "asc"]],
+    });
+
+    $('#gene').dataTable({
+        bServerSide: false,
+        order: [[1, "asc"]],
+    });
+
+
+    // TODO server side
+    $('#all').dataTable({
+        sAjaxSource: "/_get_all_data",
+        "fnServerData": function (sSource, aoData, fnCallback) {
+            $.getJSON(sSource, aoData, function (json) {
+                //take the processing time and put it in a div
+                $('#processingTime').html(json.iProcessingTime);
+                //pass the data to the standard callback and draw the table
+                fnCallback(json);
+            });
+        }
+    })
+    ;
+</script>
 
 </body>
 </html>

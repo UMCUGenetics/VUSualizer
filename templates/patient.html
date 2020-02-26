@@ -8,7 +8,7 @@
 
         <!-- Page Heading -->
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">{{ id }} has {{ variants|length }} variants.</h1>
+            <h1 class="h3 mb-0 text-gray-800">{{ id }}</h1>
         </div>
 
         <!-- Content Row -->
@@ -19,29 +19,36 @@
                         <h6 class="m-0 font-weight-bold text-primary">Information</h6>
                     </div>
                     <div class="card-body table-responsive">
-                        <table class="table table-striped table-bordered table-sm">
+                        <table class="table table-striped table-bordered table-sm" id="patient">
                             <thead>
                             <tr>
                                 <th>#</th>
                                 {% for f in fields %}
                                     <th>{{ f.replace("_", " ") }}</th>
                                 {% endfor %}
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
                             {% for variant in variants %}
                                 <tr>
-                                    <td><a href={{ url_for('variant', id = variant["id"]) }}>{{ loop.index }}</a></td>
+                                    <td>{{ loop.index }}</td>
                                     {% for f in fields %}
                                         {% set param = {f: variant[f]} %}
                                         <td>
                                             {% if f == "patient_accession_no" %}
-                                                <a href={{ url_for('variants') }}>{{ variant[f] }}</a>
+                                                <a href={{ url_for('patient', id = variant[f]) }}>{{ variant[f] }}</a>
+                                            {% elif f == "gene_(gene)" %}
+                                                <a href={{ url_for('gene', id = variant[f]) }}>{{ variant[f] }}</a>
+                                            {% elif f == "hgvs_genomic-level_nomenclature_(fullgnomen)" %}
+                                                <a href={{ url_for('variant', id = variant[f]) }}>{{ variant[f] }}</a>
                                             {% else %}
-                                                <a href={{ url_for('variants', **param) }}>{{ variant[f] }}</a>
+                                                <a href={{ url_for('all', **param) }}>{{ variant[f] }}</a>
                                             {% endif %}
                                         </td>
                                     {% endfor %}
+                                    <td><a href={{ url_for('vus', id=variant["_id"]) }}><span><i
+                                            class="fas fa-long-arrow-alt-right"></i></span></a></td>
                                 </tr>
                             {% endfor %}
                             </tbody>

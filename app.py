@@ -51,6 +51,9 @@ app.add_url_rule('/patient/<id>', view_func=patient)
 app.add_url_rule('/genes', view_func=genes)
 app.add_url_rule('/gene/<id>', view_func=gene)
 
+app.add_url_rule('/aaa', view_func=all)
+app.add_url_rule('/vus/<id>', view_func=vus)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -58,6 +61,7 @@ login_manager.login_view = 'login'
 app.add_url_rule('/_get_variant_data', view_func=get_variant_data)
 app.add_url_rule('/_get_gene_data', view_func=get_gene_data)
 app.add_url_rule('/_get_patient_data', view_func=get_patient_data)
+app.add_url_rule('/_get_all_data', view_func=get_all_data)
 
 
 @login_manager.user_loader

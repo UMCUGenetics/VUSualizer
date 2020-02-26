@@ -10,7 +10,9 @@
     --dark_blue-gray: #6B669E; /* white */
     --purpleh: #9A6894; /* white */
     --lenurple: #BB90C8; /* black */
+    --lenurple_dark: #887B87; /* white */
     --piggy_pink: #EFD8EC; /* black */
+    --piggy_pink_dark: #AF6D7D; /* white */
 
     /* Colorful Fish */
     --dark_sky_blue: #89C3CA; /* black */
@@ -76,6 +78,17 @@
 
 /* info end */
 
+
+/* warning start */
+.text-warning {
+    color: var(--piggy_pink_dark) !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid var(--piggy_pink_dark) !important;
+}
+
+/* warning end */
 
 /* a start */
 a {
