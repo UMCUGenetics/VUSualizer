@@ -54,9 +54,11 @@
         bProcessing: true,
         bjQueryUI: true,
         dom: '<"row ml-2 mb-3"B>lfrtip',
-        lengthMenu: [[10, 25, 50, 250, -1], [10, 25, 50, 250, "All"]],
+        lengthMenu: [[1, 10, 25, 50, 250, -1], [1, 10, 25, 50, 250, "All"]],
         buttons: ['colvis', 'excel', 'print', 'copy'],
-        responsive: true
+        scrollY: '50vh',
+        scrollCollapse: true,
+        //responsive: true
     });
 
     $('#variants').dataTable({
@@ -93,16 +95,22 @@
     // TODO server side
     $('#all').dataTable({
         sAjaxSource: "/_get_all_data",
-        "fnServerData": function (sSource, aoData, fnCallback) {
-            $.getJSON(sSource, aoData, function (json) {
-                //take the processing time and put it in a div
-                $('#processingTime').html(json.iProcessingTime);
-                //pass the data to the standard callback and draw the table
-                fnCallback(json);
-            });
-        }
-    })
-    ;
+        scrollX: true,
+        /*"columnDefs": [
+            {
+                // The `data` parameter refers to the data for the cell (defined by the
+                // `data` option, which defaults to the column being worked with, in
+                // this case `data: 0`.
+                "render": function (data, type, row) {
+                    return data + ' (' + row[3] + ')';
+                },
+                "targets": 0
+            },
+            {"visible": false, "targets": [3]}
+        ]*/
+
+    });
+
 </script>
 
 </body>

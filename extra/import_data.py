@@ -73,6 +73,8 @@ def main():
                         variant = {}
                         for i in range(len(data_headers)):  # iterate headers
                             key = data_headers[i].replace(" ", "_").replace(".", "\uff0e").lower()
+                            if key.startswith("father") or key.startswith("mother"):
+                                continue
                             val = row[i].value
                             if key == "labels":
                                 labels = val.split(";")

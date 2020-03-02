@@ -20,15 +20,34 @@
                             <table class="table table-striped table-hover" id="all">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
+                                    {% for todo in paginated.items %}
+                                        <li>{{ todo.title }}</li>
+                                    {% endfor %}
+                                    <!--<th>#</th>-->
                                     {% for f in fields %}
                                         <th>{{ f.replace("_", " ") }}</th>
                                     {% endfor %}
-                                    <th></th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {# data will be provided with api #}
+                                {% for variant in variants %}
+                                    <tr>
+                                        {% for f in fields %}
+                                            {% set param = {f: variant[f]} %}
+                                            <td>
+                                                {% if f == "dn_no" %}
+                                                    <a href={{ url_for('patient', id = variant[f]) }}>{{ variant[f] }}</a>
+                                                {% elif f == "gene_(gene)" %}
+                                                    <a href={{ url_for('gene', id = variant[f]) }}>{{ variant[f] }}</a>
+                                                {% elif f == "hgvs_genomic-level_nomenclature_(fullgnomen)" %}
+                                                    <a href={{ url_for('variant', id = variant[f]) }}>{{ variant[f] }}</a>
+                                                {% else %}
+                                                    <a href={{ url_for('all', **param) }}>{{ variant[f] }}</a>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>

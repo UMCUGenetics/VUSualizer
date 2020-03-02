@@ -1,8 +1,11 @@
 from flask_mongoengine import MongoEngine
 from flask_login import UserMixin
 from wtforms.validators import InputRequired
+from pymongo import MongoClient
 
-db = MongoEngine()
+# db = MongoEngine()
+
+db = MongoClient('localhost', 27017)
 
 
 class Variant(db.DynamicDocument):
