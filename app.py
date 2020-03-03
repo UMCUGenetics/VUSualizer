@@ -2,7 +2,6 @@ from flask import Flask, make_response
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_admin import Admin
 
-# from models import *
 from views import *  # index, variant, export, register, login, logout, account
 
 app = Flask(__name__)
@@ -22,11 +21,6 @@ app.config['DEBUG_TB_PANELS'] = (
     'flask_debugtoolbar.panels.logger.LoggingPanel',
     'flask_mongoengine.panels.MongoDebugPanel'
 )
-
-from pymongo import MongoClient
-
-# from flask_pymongo import PyMongo
-
 
 # DebugToolbarExtension(app)
 

@@ -38,9 +38,9 @@
                                         <td>
                                             {% if f == "dn_no" %}
                                                 <a href={{ url_for('patient', id = variant[f]) }}>{{ variant[f] }}</a>
-                                            {% elif f == "gene_(gene)" %}
+                                            {% elif f == "gene" %}
                                                 <a href={{ url_for('gene', id = variant[f]) }}>{{ variant[f] }}</a>
-                                            {% elif f == "hgvs_genomic-level_nomenclature_(fullgnomen)" %}
+                                            {% elif f == "fullgnomen" %}
                                                 <a href={{ url_for('variant', id = variant[f]) }}>{{ variant[f] }}</a>
                                             {% else %}
                                                 <a href={{ url_for('all', **param) }}>{{ variant[f] }}</a>

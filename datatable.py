@@ -1,15 +1,9 @@
 from collections import namedtuple
 from pymongo import MongoClient
-from flask import request
+from querystring_parser import parser
 import json
 
-# from core.web.site import app
-# from core.web.site.views_master import *
-
-
-# translation for sorting between datatables api and mongodb
-order_dict = {'asc': 1, 'desc': -1}
-max_string_length = 30
+max_string_length = 50
 
 
 class DataTablesServer:
@@ -20,61 +14,32 @@ class DataTablesServer:
         self.collection = collection
         self.group_by = group_by
 
-        self.request_values = request.values  # values specified by the datatable for filtering, sorting, paging
+        # values specified by the datatable for filtering, sorting, paging
+        self.request = parser.parse(request.query_string)
+        # print(json.dumps(self.request, sort_keys=True, indent=4))
+
         self.dbh = MongoClient()  # connection to your mongodb (see pymongo docs). this is defaulted to localhost
         self.result_data = None  # results from the db
-        self.cardinality_filtered = 0  # total in the table after filtering
-        self.cardinality = 0  # total in the table unfiltered
+        self.records_filtered = 0  # total in the table after filtering
+        self.records_total = 0  # total in the table unfiltered
 
         self.run_queries()
 
-    def output_result_on_queried_fields(self):
-        output = {}
-        output['sEcho'] = str(int(self.request_values['sEcho']))
-        output['iTotalRecords'] = str(self.cardinality)
-        output['iTotalDisplayRecords'] = str(self.cardinality_filtered)
-
-        aaData_rows = []
-        i = self.paging().start
-        for row in self.result_data:
-            aaData_row = []
-            i += 1
-            aaData_row.append(i)
-            for col, val in row.items():
-                uwu = ""
-                if col == "_id":
-                    if self.group_by == "hgvs_genomic-level_nomenclature_(fullgnomen)":
-                        uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "dn_no":
-                        uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "gene_(gene)":
-                        uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                elif col == "protein":
-                    temp = []
-                    for x in val:
-                        temp.append('<a href="/aaa?protein_(pnomen)={0}">{0}</a>'.format(x))
-                    uwu = ", ".join(temp)
-                else:
-                    uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
-                    # uwu = val
-                aaData_row.append(uwu)
-            aaData_rows.append(aaData_row)
-
-        output['aaData'] = aaData_rows
-        return output
-
     def output_result_on_given_fields(self):
         output = {}
-        output['sEcho'] = str(int(self.request_values['sEcho']))
-        output['iTotalRecords'] = str(self.cardinality)
-        output['iTotalDisplayRecords'] = str(self.cardinality_filtered)
+        output['draw'] = str(int(self.request['draw']))
+        output['recordsTotal'] = str(self.records_total)
+        output['recordsFiltered'] = str(self.records_filtered)
 
-        aaData_rows = []
+        data_rows = []
         i = self.paging().start
+
         for row in self.result_data:
-            aaData_row = []
+            # print(row)
+            data_row = []
             i += 1
-            aaData_row.append(i)
+            # data_row["#"] = i
+            data_row.append(i)
             for col in self.columns:
                 if col in row:
                     val = row[col]
@@ -93,19 +58,69 @@ class DataTablesServer:
 
                 uwu = ""
                 if col == "_id":
-                    if self.group_by == "hgvs_genomic-level_nomenclature_(fullgnomen)":
+                    if self.group_by == "fullgnomen":
+                        uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
+                    elif self.group_by == "patient_accession_no":
+                        uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
+                    elif self.group_by == "gene":
+                        uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+                elif col == "protein":
+                    temp = []
+                    for x in val:
+                        temp.append('<a href="/aaa?protein_(pnomen)={0}">{0}</a>'.format(x))
+                    uwu = ", ".join(temp)
+                else:
+                    # uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
+                    uwu = '{0}'.format(val)
+                    # uwu = val
+                # data_row[col] = uwu
+                data_row.append(uwu)
+            data_rows.append(data_row)
+        """
+        for row in self.result_data:
+            one_row = []
+            for k, v in row.items():
+                one_row.append(v)
+            data_rows.append(one_row)
+        """
+
+        output['data'] = data_rows
+        # print(output)
+        return output
+
+    def output_result_on_queried_fields(self):
+        output = {}
+        output['draw'] = str(int(self.request['draw']))
+        output['recordsTotal'] = str(self.records_total)
+        output['recordsFiltered'] = str(self.records_filtered)
+
+        data_rows = []
+        i = self.paging().start
+        for row in self.result_data:
+            data_row = []
+            i += 1
+            data_row.append(i)
+            for col, val in row.items():
+                uwu = ""
+                if col == "_id":
+                    if self.group_by == "fullgnomen":
                         uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
                     elif self.group_by == "dn_no":
                         uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "gene_(gene)":
+                    elif self.group_by == "gene":
                         uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+                elif col == "protein":
+                    temp = []
+                    for x in val:
+                        temp.append('<a href="/aaa?protein_(pnomen)={0}">{0}</a>'.format(x))
+                    uwu = ", ".join(temp)
                 else:
                     uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
                     # uwu = val
-                aaData_row.append(uwu)
-            aaData_rows.append(aaData_row)
+                data_row.append(uwu)
+            data_rows.append(data_row)
 
-        output['aaData'] = aaData_rows
+        output['data'] = data_rows
         return output
 
     def run_queries(self):
@@ -127,7 +142,7 @@ class DataTablesServer:
                 }
             }
 
-        if self.group_by == "hgvs_genomic-level_nomenclature_(fullgnomen)":
+        if self.group_by == "fullgnomen":
             group["$group"]["protein"] = {"$addToSet": "$protein_(pnomen)"}
         pipeline = []
 
@@ -142,42 +157,62 @@ class DataTablesServer:
         self.result_data = list(mydb[self.collection].aggregate(pipeline))
 
         if group:
-            # total amount unfiltered
-            self.cardinality = len(list(mydb[self.collection].aggregate([group])))
-            # total amount filtered (search bar)
-            self.cardinality_filtered = len(list(mydb[self.collection].aggregate([group, match])))
+            # total amount unfiltered & total amount filtered (search bar)
+            self.records_total = len(list(mydb[self.collection].aggregate([group])))
+            self.records_filtered = len(list(mydb[self.collection].aggregate([group, match])))
         else:
-            self.cardinality = len(list(mydb[self.collection].find()))
-            self.cardinality_filtered = len(list(mydb[self.collection].find(filter)))
+            self.records_total = len(list(mydb[self.collection].find()))
+            self.records_filtered = len(list(mydb[self.collection].find(filter)))
 
     def filtering(self):
-        # build your filter spec
+        """
+        build your filter spec
+        "search": {
+            "regex": "false",
+            "value": ""
+        },
+        :return: filter dict
+        """
+        # TODO : search per individual column? not needed?
         filter = {}
-        if (self.request_values.has_key('sSearch')) and (self.request_values['sSearch'] != ""):
+        if self.request['search']['value'] != "":
+            # need to match for every field
             # the term put into search is logically concatenated with 'or' between all columns
             or_filter_on_all_columns = []
-
-            for i in range(len(self.columns)):
+            for k, v in self.request["columns"].items():
                 column_filter = {}
-                column_filter[self.columns[i]] = {'$regex': self.request_values['sSearch'], '$options': 'i'}
-                or_filter_on_all_columns.append(column_filter)
-                filter['$or'] = or_filter_on_all_columns
+                try:
+                    column_filter[self.columns[k]] = {'$regex': self.request['search']['value'], '$options': 'i'}
+                    or_filter_on_all_columns.append(column_filter)
+                except:
+                    print(str(k), " is out of range prob")
+            filter['$or'] = or_filter_on_all_columns
+            # print(filter)
         return filter
 
     def sorting(self):
+        """
+        mongo translation for sorting order
+        "order": {
+            "0": {
+                "column": "0",
+                "dir": "asc"
+            }
+        },
+        :return: order dict { col name : direction }
+        """
         order = {}
-        # mongo translation for sorting order
 
-        if (self.request_values['iSortCol_0'] != "") and (self.request_values['iSortingCols'] > str(0)):
-            order = {}
-            for i in range(int(self.request_values['iSortingCols'])):
-                order[self.columns[int(self.request_values['iSortCol_' + str(i)])]] = order_dict[
-                    self.request_values['sSortDir_' + str(i)]]
+        # translation for sorting between datatables api and mongodb
+        order_dict = {'asc': 1, 'desc': -1}
+
+        for key, val in self.request['order'].items():
+            order[self.columns[int(val['column'])]] = order_dict[val['dir']]
         return order
 
     def paging(self):
         pages = namedtuple('pages', ['start', 'length'])
-        if (self.request_values['iDisplayStart'] != ""):  # and (int(self.request_values['iDisplayLength']) != -1):
-            pages.start = int(self.request_values['iDisplayStart'])
-            pages.length = int(self.request_values['iDisplayLength'])
+        if (self.request['start'] != ""):  # and (int(self.request['iDisplayLength']) != -1):
+            pages.start = int(self.request['start'])
+            pages.length = int(self.request['length'])
         return pages

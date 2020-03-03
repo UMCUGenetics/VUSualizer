@@ -19,9 +19,12 @@ Input .xlsx format
 """
 
 import os
-from openpyxl import load_workbook
+import io
 import time
 import pymongo
+import warnings
+import progressbar as p
+from openpyxl import load_workbook
 
 
 def main():
@@ -29,19 +32,34 @@ def main():
     db = client.vus.variant
     db.drop()
 
+    files = os.listdir("input")
+    bar = p.ProgressBar(maxval=len(files), \
+                        widgets=[p.Bar('=', '[', ']'), ' ', p.Percentage()])
+    print(len(files))
+    bar.start()
+
+    # quiet the warning when loading the first xlsx
+    warnings.simplefilter("ignore")
+
     start_time = time.time()
 
-    for file in os.listdir("input"):
+    i = 0
+    for file in files:
+        i += 1
+        bar.update(i)
         # To prevent opening a cached version of the file
         if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
-            print("#####\t\tParsing {}\t\t#####".format(file))
+            # print("#####\t\tParsing {}\t\t#####".format(file))
             patient = {}
             patient["dn_no"] = os.path.splitext(file)[0]
             annotation = {}
             data_headers = []
             section = ""
 
-            wb = load_workbook(filename="input/" + file)
+            with open("input/" + file, "rb") as f:
+                in_mem_file = io.BytesIO(f.read())
+            wb = load_workbook(in_mem_file)
+
             sheet = wb.active
             for row in sheet:
 
@@ -73,8 +91,20 @@ def main():
                         variant = {}
                         for i in range(len(data_headers)):  # iterate headers
                             key = data_headers[i].replace(" ", "_").replace(".", "\uff0e").lower()
-                            if key.startswith("father") or key.startswith("mother"):
+
+                            # skip everything that starts with father or mother etc since the key
+                            # name contains patient number of parents
+                            # TODO: implement this properly
+                            if key.startswith("father") or key.startswith("mother") \
+                                or key.startswith("brother") or key.startswith("sister"):
                                 continue
+
+                            # only use the name inbetween brackets to store, if last char is a right bracket
+                            if key.endswith(")"):
+                                index_bracket_left = key.rfind("(")
+                                if index_bracket_left >= 0:
+                                    key = key[index_bracket_left + 1:-1]
+
                             val = row[i].value
                             if key == "labels":
                                 labels = val.split(";")
@@ -88,7 +118,8 @@ def main():
                         # add variant info along with metadata to collection
                         variant.update(patient)
                         db.insert_one(variant)
-
+    print(i)
+    bar.finish()
     print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
 
 

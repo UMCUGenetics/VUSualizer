@@ -58,21 +58,26 @@
         buttons: ['colvis', 'excel', 'print', 'copy'],
         scrollY: '50vh',
         scrollCollapse: true,
-        //responsive: true
+        //responsive: true,
+
+        fnInitComplete: function () {
+            // Event handler to be fired when rendering is complete (Turn off Loading gif for example)
+            console.log('Datatable rendering complete');
+        }
     });
 
     $('#variants').dataTable({
-        sAjaxSource: "/_get_variant_data",
+        ajax: "/_get_variant_data",
         order: [[2, "desc"]],
     });
 
     $('#genes').dataTable({
-        sAjaxSource: "/_get_gene_data",
+        ajax: "/_get_gene_data",
         order: [[2, "desc"]],
     });
 
     $('#patients').dataTable({
-        sAjaxSource: "/_get_patient_data",
+        ajax: "/_get_patient_data",
         order: [[2, "desc"]],
     });
 
@@ -90,28 +95,10 @@
         bServerSide: false,
         order: [[1, "asc"]],
     });
-
-
-    // TODO server side
-    $('#all').dataTable({
-        sAjaxSource: "/_get_all_data",
-        scrollX: true,
-        /*"columnDefs": [
-            {
-                // The `data` parameter refers to the data for the cell (defined by the
-                // `data` option, which defaults to the column being worked with, in
-                // this case `data: 0`.
-                "render": function (data, type, row) {
-                    return data + ' (' + row[3] + ')';
-                },
-                "targets": 0
-            },
-            {"visible": false, "targets": [3]}
-        ]*/
-
-    });
-
 </script>
+
+{% block scripts %}
+{% endblock %}
 
 </body>
 </html>
