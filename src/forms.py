@@ -10,7 +10,7 @@ from wtforms.validators import Email, Length, InputRequired, DataRequired, Equal
 
 
 class RegisterForm(FlaskForm):
-    name = StringField('name', [
+    username = StringField('username', [
         InputRequired(),
         Length(min=5, max=30)
     ])

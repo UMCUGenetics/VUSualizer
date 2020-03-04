@@ -39,7 +39,7 @@ class DataTablesServer:
             data_row = []
             i += 1
             # data_row["#"] = i
-            data_row.append(i)
+            data_row.append("<a href='/vus/{0}'>{1}</a>".format(row['_id'], i))
             for col in self.columns:
                 if col in row:
                     val = row[col]
@@ -67,11 +67,11 @@ class DataTablesServer:
                 elif col == "protein":
                     temp = []
                     for x in val:
-                        temp.append('<a href="/aaa?protein_(pnomen)={0}">{0}</a>'.format(x))
+                        temp.append('<a href="/aaa?pnomen={0}">{0}</a>'.format(x))
                     uwu = ", ".join(temp)
                 else:
-                    # uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
-                    uwu = '{0}'.format(val)
+                    uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
+                    # uwu = '{0}'.format(val)
                     # uwu = val
                 # data_row[col] = uwu
                 data_row.append(uwu)

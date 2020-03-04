@@ -10,7 +10,7 @@
                 <div class="card-body p-0">
                     <div class="p-5">
                         <form action="/register" method="post">
-                            {{ render_field(form.name, "user", class="form-control", placeholder="Full Name") }}
+                            {{ render_field(form.username, "user", class="form-control", placeholder="Full Name") }}
                             {{ render_field(form.email, "at", class="form-control", placeholder="Email Address") }}
                             {{ render_field(form.password, "key", class="form-control", placeholder="Password") }}
                             {{ render_field(form.confirm, "check", class="form-control", placeholder="Confirm Password") }}
