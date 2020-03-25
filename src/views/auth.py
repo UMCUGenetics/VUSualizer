@@ -37,11 +37,14 @@ def logout():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = User(email=form.email.data, password=hashed_password)
-        new_user.save_to_db()
-        login_user(new_user)
-        return redirect(url_for('account'))
+        user = User.get(form.email.data.strip())  # strip to remove any excess spaces
+        if not user:
+            hashed_password = generate_password_hash(form.password.data, method='sha256')
+            new_user = User(email=form.email.data, password=hashed_password)
+            new_user.save_to_db()
+            login_user(new_user)
+            return redirect(url_for('account'))
+        flash("A user with this e-mail address already exists.")
     return render_template('register.html', form=form)
 
 
