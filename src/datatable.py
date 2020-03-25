@@ -67,10 +67,10 @@ class DataTablesServer:
                 elif col == "protein":
                     temp = []
                     for x in val:
-                        temp.append('<a href="/aaa?pnomen={0}">{0}</a>'.format(x))
+                        temp.append('<a href="/all?pnomen={0}">{0}</a>'.format(x))
                     uwu = ", ".join(temp)
                 else:
-                    uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
+                    uwu = '<a href="/all?{1}={0}">{0}</a>'.format(val, col)
                     # uwu = '{0}'.format(val)
                     # uwu = val
                 # data_row[col] = uwu

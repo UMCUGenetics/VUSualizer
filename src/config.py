@@ -16,3 +16,5 @@ DEBUG_TB_PANELS = (
     'flask_debugtoolbar.panels.logger.LoggingPanel',
     'flask_mongoengine.panels.MongoDebugPanel'
 )
+
+# REMEMBER_COOKIE_DURATION = timedelta(seconds=20)

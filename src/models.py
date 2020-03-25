@@ -2,15 +2,14 @@ import datetime
 import uuid
 from flask_login import UserMixin
 from src import mongo
+import json
 
 
 class User(UserMixin):
-
-    def __init__(self, username, email, password):
-        self.username = username
+    def __init__(self, email, password):
+        self.id = email
         self.email = email
         self.password = password
-        self._id = email
 
     def is_authenticated(self):
         return True
@@ -22,14 +21,14 @@ class User(UserMixin):
         return False
 
     def get_id(self):
-        return self._id
-
-    def save_to_mongo(self):
-        print(self.json())
-        mongo.db.user.insert(self.json())
+        return self.email
 
     @classmethod
-    def get_by_email(cls, email):
+    def get(cls, email):
         data = mongo.db.user.find_one({"email": email}, {"_id": 0})
         if data is not None:
-            return cls(**data)
+            return cls(email, data['password'])
+            # return cls(**data)
+
+    def save_to_db(self):
+        mongo.db.user.insert(self.__dict__)

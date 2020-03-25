@@ -2,107 +2,128 @@
 
 {% block content %}
 
-    <!-- Begin Page Content -->
-    <div class="container-fluid">
+<!-- Begin Page Content -->
+<div class="container-fluid">
 
-        <!-- Page Heading -->
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Home</h1>
-            <!--<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled"><i
-                    class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>-->
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Home</h1>
+        <!--<a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm disabled"><i
+                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>-->
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+
+
+        <!-- Patients Count Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Patients</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ p }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-heartbeat fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Content Row -->
-        <div class="row">
-
-
-            <!-- Patients Count Card -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-left-warning shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Patients</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ p }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-heartbeat fa-2x text-gray-300"></i>
-                            </div>
+        <!-- Genes Count Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Genes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ g }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dna fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Genes Count Card -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-left-info shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Genes</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ g }}</div>
+        <!-- Variant Count Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Unique Variants
                             </div>
-                            <div class="col-auto">
-                                <i class="fas fa-dna fa-2x text-gray-300"></i>
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ v }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-random fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Variant Count Card -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-left-success shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Unique Variants
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ v }}</div>
+        <!-- Entry Count Card -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Variants
                             </div>
-                            <div class="col-auto">
-                                <i class="fas fa-random fa-2x text-gray-300"></i>
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ t }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-search fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Entry Count Card -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-left-primary shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Variants
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ t }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-search fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
 
     </div>
-    <!-- /.container-fluid -->
 
-    </div>
-    <!-- End of Main Content -->
-
-    <!-- Footer -->
-    <footer class="sticky-footer bg-white">
-        <div class="container my-auto">
-            <div class="copyright text-center my-auto">
-                <span>Copyright &copy; UMC Utrecht 2020</span>
+    <!-- Content Row -->
+    <div class="row">
+        <div class="col-6">
+            <div class="card mt-3">
+                <div class="card-header">
+                    Handy links
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a class="list-group-item list-group-item-action" href="http://grch37.ensembl.org">Ensembl
+                            GRCh38</a>
+                        <a class="list-group-item list-group-item-action" href="http://ensembl.org">Ensembl GRCh37</a>
+                        <a class="list-group-item list-group-item-action" href="https://omim.org">OMIM®</a>
+                        <a class="list-group-item list-group-item-action" href="https://ncbi.nlm.nih.gov/snp">dbSNP</a>
+                        <a class="list-group-item list-group-item-action" href="https://ncbi.nlm.nih.gov/nuccore">GenBank</a>
+                        <a class="list-group-item list-group-item-action" href="https://genecards.org/">GeneCard</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </footer>
-    <!-- End of Footer -->
+    </div>
+</div>
+<!-- /.container-fluid -->
+
+</div>
+<!-- End of Main Content -->
+
+<!-- Footer -->
+<footer class="sticky-footer bg-white">
+    <div class="container my-auto">
+        <div class="copyright text-center my-auto">
+            <span>Copyright &copy; UMC Utrecht 2020</span>
+        </div>
+    </div>
+</footer>
+<!-- End of Footer -->
 
 
 {% endblock %}

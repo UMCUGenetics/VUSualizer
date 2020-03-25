@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, SubmitField
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField
 from wtforms.validators import Email, Length, InputRequired, DataRequired, EqualTo
 
 """
@@ -27,6 +27,7 @@ class RegisterForm(FlaskForm):
     confirm = PasswordField('Repeat Password', [
         InputRequired()
     ])
+    submit = SubmitField('Register')
 
 
 class LoginForm(FlaskForm):
@@ -39,6 +40,8 @@ class LoginForm(FlaskForm):
         InputRequired(),
         Length(min=5, max=30, message='Your password is either too short or too long.')
     ])
+    remember_me = BooleanField('Remember me')
+    submit = SubmitField('Login')
 
 
 class CommentForm(FlaskForm):
