@@ -25,6 +25,7 @@ jdcal==1.4.1
 Jinja2==2.10.1
 lml==0.0.9
 MarkupSafe==1.1.1
+mod-wsgi==4.7.1
 MongoAlchemy==0.19
 mongoengine==0.18.2
 openpyxl==3.0.2
