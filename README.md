@@ -33,7 +33,7 @@ $ pip install -r requirements.txt
 ```
 $ python run.py
 ```
-## Run for Production
+## Run for production (apache required)
 ```
 $ mod_wsgi-express start-server run.py
 ```
