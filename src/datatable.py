@@ -1,5 +1,5 @@
 from collections import namedtuple
-from pymongo import MongoClient
+from src import mongo
 from querystring_parser import parser
 import json
 
@@ -18,7 +18,7 @@ class DataTablesServer:
         self.request = parser.parse(request.query_string)
         # print(json.dumps(self.request, sort_keys=True, indent=4))
 
-        self.dbh = MongoClient()  # connection to your mongodb (see pymongo docs). this is defaulted to localhost
+        self.dbh = mongo.db
         self.result_data = None  # results from the db
         self.records_filtered = 0  # total in the table after filtering
         self.records_total = 0  # total in the table unfiltered
@@ -124,7 +124,6 @@ class DataTablesServer:
         return output
 
     def run_queries(self):
-        mydb = self.dbh.vus
         pages = self.paging()  # pages has 'start' and 'length' attributes
         filter = self.filtering()  # the term entered into the datatable search
         sorting = self.sorting()  # the document field chosen to sort
@@ -154,15 +153,15 @@ class DataTablesServer:
         if pages.length >= 0:
             pipeline.append({"$limit": pages.length})
 
-        self.result_data = list(mydb[self.collection].aggregate(pipeline))
+        self.result_data = list(self.dbh[self.collection].aggregate(pipeline))
 
         if group:
             # total amount unfiltered & total amount filtered (search bar)
-            self.records_total = len(list(mydb[self.collection].aggregate([group])))
-            self.records_filtered = len(list(mydb[self.collection].aggregate([group, match])))
+            self.records_total = len(list(self.dbh[self.collection].aggregate([group])))
+            self.records_filtered = len(list(self.dbh[self.collection].aggregate([group, match])))
         else:
-            self.records_total = len(list(mydb[self.collection].find()))
-            self.records_filtered = len(list(mydb[self.collection].find(filter)))
+            self.records_total = len(list(self.dbh[self.collection].find()))
+            self.records_filtered = len(list(self.dbh[self.collection].find(filter)))
 
     def filtering(self):
         """
