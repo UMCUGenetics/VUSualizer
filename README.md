@@ -7,7 +7,7 @@
 ## Application Structure 
 ```
 .
-|──────run.py/
+|──────run.py
 |──────src/
 | |────__init__.py
 | |────config.py
