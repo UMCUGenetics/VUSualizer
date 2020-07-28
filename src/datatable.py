@@ -57,22 +57,24 @@ class DataTablesServer:
                     val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
 
                 uwu = ""
-                if col == "_id":
-                    if self.group_by == "fullgnomen":
-                        uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "patient_accession_no":
-                        uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "gene":
-                        uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+                if col == "fullgnomen":
+                    uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
+                elif col == "dn_no":
+                    uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
+                elif col == "gene":
+                    uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
                 elif col == "protein":
                     temp = []
                     for x in val:
-                        temp.append('<a href="/all?pnomen={0}">{0}</a>'.format(x))
+                        # filtering like this doesn't work yet
+                        # temp.append('<a href="/all?pnomen={0}">{0}</a>'.format())
+                        temp.append(x)
                     uwu = ", ".join(temp)
                 else:
-                    uwu = '<a href="/all?{1}={0}">{0}</a>'.format(val, col)
+                    # filtering like this doesn't work yet
+                    # uwu = '<a href="/all?{1}={0}">{0}</a>'.format(val, col)
                     # uwu = '{0}'.format(val)
-                    # uwu = val
+                    uwu = val
                 # data_row[col] = uwu
                 data_row.append(uwu)
             data_rows.append(data_row)
@@ -112,11 +114,16 @@ class DataTablesServer:
                 elif col == "protein":
                     temp = []
                     for x in val:
-                        temp.append('<a href="/aaa?protein_(pnomen)={0}">{0}</a>'.format(x))
+                        # filtering like this doesn't work yet
+                        # temp.append('<a href="/all?pnomen={0}">{0}</a>'.format(x))
+                        temp.append(x)
                     uwu = ", ".join(temp)
+                elif col == "total":
+                    uwu = val
                 else:
-                    uwu = '<a href="/aaa?{1}={0}">{0}</a>'.format(val, col)
-                    # uwu = val
+                    # filtering like this doesn't work yet
+                    # uwu = '<a href="/all?{1}={0}">{0}</a>'.format(val, col)
+                    uwu = val
                 data_row.append(uwu)
             data_rows.append(data_row)
 
@@ -142,7 +149,7 @@ class DataTablesServer:
             }
 
         if self.group_by == "fullgnomen":
-            group["$group"]["protein"] = {"$addToSet": "$protein_(pnomen)"}
+            group["$group"]["protein"] = {"$addToSet": "$pnomen"}
         pipeline = []
 
         if group:
@@ -152,7 +159,6 @@ class DataTablesServer:
         pipeline = pipeline + [{"$sort": sorting}, {"$skip": pages.start}]
         if pages.length >= 0:
             pipeline.append({"$limit": pages.length})
-
         self.result_data = list(self.dbh[self.collection].aggregate(pipeline))
 
         if group:
