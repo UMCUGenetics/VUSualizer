@@ -29,7 +29,7 @@ def get_all_fields():
     return (list(uwu)[0]['all_keys'])
 
 
-all_fields = ["chromosome", "gene", "cnomen", "pnomen", "exon", "classification",
+all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "cnomen", "pnomen", "exon", "classification",
               "codingeffect", "zygosity", "allelic_depth_allele_1", "allelic_depth_allele_2",
               "inheritance_mode", "inherited_from", "variant_assessment",
               "omimmorbidphenotype", "omimmorbidgenemim"]
