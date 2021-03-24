@@ -3,3 +3,5 @@ __pycache__
 *.xml
 venv/
 extra/input/*
+.DS_Store
+extra/.DS_Store
