@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from flask_login import UserMixin
+from flask_login import UserMixin #LoginManager, login_user, login_required, current_user
 from src import mongo
 import json
 
@@ -32,3 +32,7 @@ class User(UserMixin):
 
     def save_to_db(self):
         mongo.db.user.insert(self.__dict__)
+
+#@login_manager.user_loader
+#def load_user(user_id):
+#    return User.query.get(user_id)
