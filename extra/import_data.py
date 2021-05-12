@@ -24,19 +24,54 @@ import time
 import pymongo
 import warnings
 import progressbar
+import argparse 
+import sys
 from openpyxl import load_workbook
+from argparse import RawTextHelpFormatter
 
+def argparser():
+    # Override of the error function in ArgumentParser from argparse
+    # To display the original error message + help page in the terminal, when the wrong or no arguments are given
+    class DefaultHelpParser(argparse.ArgumentParser):
+        def error(self, message):
+            sys.stderr.write('\nerror: %s\n' % message)
+            self.print_help()
+            sys.exit(1)  # exit program
+
+    # Override of adding an extra action class in Action from argparse
+    # To add an extra action that can check for file extensions and display the help page if wrong file extension
+    def CheckExt(choices):
+        class Act(argparse.Action):
+            def __call__(self, parser, namespace, fname, option_string=None):
+                for f in fname:
+                    ext = os.path.splitext(f)[1][1:]
+                    if ext not in choices:
+                        option_string = '({})'.format(option_string) if option_string else ''
+                        parser.error("file doesn't end with {}{}".format(choices, option_string))  # display error message
+                    else:
+                        setattr(namespace, self.dest, fname)
+        return Act
+
+    # required arguments and optional arguments for the terminal. A help page is automatically generated.
+    parser = DefaultHelpParser(
+        description="VUSualizer import data:\nImports data from 'O:\AMG_bijlagen_WES_uitslagen' after transferring this data into\nthe Dwergeik UMCU server. An additional script will notice new files in this folder\nand use these as a parameter for this script. This will update the local MongoDB.",
+        formatter_class=RawTextHelpFormatter)
+    parser.add_argument("-v", "--version", action='version', version='%(prog)s 1.0')
+    # puts following arguments under 'required', rather than the default 'optional'
+    required_argument = parser.add_argument_group('required arguments')
+    # add other file-extensions if needed: for example: CheckExt({'xlsx', 'xls})
+    required_argument.add_argument("-f", "--file", metavar='', required=True, nargs='+', action=CheckExt({'xlsx'}),
+                                   help=".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'" )
+
+    args = parser.parse_args()
+    return args.file
 
 def main():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client.vus.variant
-    db.drop()
-
-    files = os.listdir("input")
-    # bar = p.ProgressBar(maxval=len(files), \
-    #                    widgets=[p.Bar('=', '[', ']'), ' ', p.Percentage()])
-    # print(len(files))
-    # bar.start()
+    #db.drop()
+    #files = os.listdir("input")
+    files = argparser()
 
     # quiet the warning when loading the first xlsx
     warnings.simplefilter("ignore")
@@ -47,7 +82,6 @@ def main():
         i = 0
         for file in bar(files):
             i += 1
-            # bar.update(i)
             # To prevent opening a cached version of the file
             if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
                 # print("#####\t\tParsing {}\t\t#####".format(file))
@@ -56,14 +90,12 @@ def main():
                 annotation = {}
                 data_headers = []
                 section = ""
-
-                with open("input/" + file, "rb") as f:
+                with open(file, "rb") as f:
                     in_mem_file = io.BytesIO(f.read())
                 wb = load_workbook(in_mem_file)
 
                 sheet = wb.active
                 for row in sheet:
-
                     # First assess the section we're parsing
                     if section == "":
                         # print("### Starting with parsing the Metadata section")
@@ -120,8 +152,6 @@ def main():
                             variant.update(patient)
                             db.insert_one(variant)
             bar.update(bar.value)
-    #print(i)
-    #bar.finish()
     print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
 
 
