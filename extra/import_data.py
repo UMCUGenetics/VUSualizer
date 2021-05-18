@@ -54,14 +54,29 @@ def argparser():
 
     # required arguments and optional arguments for the terminal. A help page is automatically generated.
     parser = DefaultHelpParser(
-        description="VUSualizer import data:\nImports data from 'O:\AMG_bijlagen_WES_uitslagen' after transferring this data into\nthe Dwergeik UMCU server. An additional script will notice new files in this folder\nand use these as a parameter for this script. This will update the local MongoDB.",
+        description=(
+        "VUSualizer import data:\n"
+        "Imports data from 'O:\AMG_bijlagen_WES_uitslagen' after transferring this data into\n"
+        "the Dwergeik UMCU server. An additional script will notice new files in this folder\n"
+        "and use these as a parameter for this script. This will update the local MongoDB."
+        ),        
         formatter_class=RawTextHelpFormatter)
-    parser.add_argument("-v", "--version", action='version', version='%(prog)s 1.0')
+    parser.add_argument(
+        "-v", 
+        "--version", 
+        action='version', 
+        version='%(prog)s 1.0')
     # puts following arguments under 'required', rather than the default 'optional'
     required_argument = parser.add_argument_group('required arguments')
     # add other file-extensions if needed: for example: CheckExt({'xlsx', 'xls})
-    required_argument.add_argument("-f", "--file", metavar='', required=True, nargs='+', action=CheckExt({'xlsx'}),
-                                   help=".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'" )
+    required_argument.add_argument(
+        "-f", 
+        "--file", 
+        metavar='', 
+        required=True, 
+        nargs='+', 
+        action=CheckExt({'xlsx'}),
+        help=".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'" )
 
     args = parser.parse_args()
     return args.file
@@ -69,8 +84,6 @@ def argparser():
 def main():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client.vus.variant
-    #db.drop()
-    #files = os.listdir("input")
     files = argparser()
 
     # quiet the warning when loading the first xlsx
