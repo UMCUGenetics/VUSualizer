@@ -27,7 +27,6 @@ import progressbar
 import argparse 
 import sys
 from openpyxl import load_workbook
-from argparse import RawTextHelpFormatter
 
 def argparser():
     # Override of the error function in ArgumentParser from argparse
@@ -60,7 +59,7 @@ def argparser():
         "the Dwergeik UMCU server. An additional script will notice new files in this folder\n"
         "and use these as a parameter for this script. This will update the local MongoDB."
         ),        
-        formatter_class=RawTextHelpFormatter)
+        formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-v", 
         "--version", 
