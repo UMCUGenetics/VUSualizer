@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_pymongo import PyMongo
+#from flask_mongoengine import MongoEngine
 from flask_login import LoginManager
 
 # flask
@@ -8,6 +9,8 @@ app.config.from_pyfile("config.py")
 
 # mongo db
 mongo = PyMongo(app)
+#db = MongoEngine()
+#db.init_app(app)
 
 # login manager
 login_manager = LoginManager()
