@@ -98,7 +98,8 @@ def main():
             if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
                 # print("#####\t\tParsing {}\t\t#####".format(file))
                 patient = {}
-                patient["dn_no"] = os.path.splitext(file)[0]
+                #patient["dn_no"] = os.path.splitext(file)[0]
+                patient["dn_no"] = os.path.splitext(os.path.basename(file))[0]
                 annotation = {}
                 data_headers = []
                 section = ""
