@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for
 from src import app, mongo
-from flask_login import login_required
+from flask_login import login_required, current_user
 from bson import ObjectId
 import json
 
@@ -54,6 +54,13 @@ def render_individual_page(group_by, id, template):
     return render_template(template, variants=variants, fields=fields, id=id)
 
 
+def check_if_user_active(usercheck):
+    if usercheck == True:
+        return True
+    else:
+        return False
+
+
 #### END HELPER FUNCTIONS
 
 @app.route('/')
@@ -74,90 +81,128 @@ def page_not_found(e):
 @app.route('/patient/<id>')
 @login_required
 def patient(id):
-    return render_individual_page("dn_no", id, "patient.html")
+    if check_if_user_active(current_user.active):
+        return render_individual_page("dn_no", id, "patient.html")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/gene/<id>')
 @login_required
 def gene(id):
-    return render_individual_page("gene", id, "gene.html")
+    if check_if_user_active(current_user.active):
+        return render_individual_page("gene", id, "gene.html")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/variant/<id>')
 @login_required
 def variant(id):
-    return render_individual_page("fullgnomen", id, "variant.html")
+    if check_if_user_active(current_user.active):
+        return render_individual_page("fullgnomen", id, "variant.html")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/genes')
 @login_required
 def genes():
-    return render_template("genes.html")
+    if check_if_user_active(current_user.active):
+        return render_template("genes.html")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/patients')
 @login_required
 def patients():
-    return render_template("patients.html")
+    if check_if_user_active(current_user.active):
+        return render_template("patients.html")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/variants')
 @login_required
 def variants():
-    fields = columns
-    if "protein" not in fields:
-        fields.append("protein")
-    return render_template('variants.html', fields=fields)
+    if check_if_user_active(current_user.active):
+        fields = columns
+        if "protein" not in fields:
+            fields.append("protein")
+        return render_template('variants.html', fields=fields)
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/all')
 @login_required
 def all():
-    fields = all_fields
-    return render_template('all.html', fields=fields)
+    if check_if_user_active(current_user.active):
+        fields = all_fields
+        return render_template('all.html', fields=fields)
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/vus/<id>')
 @login_required
 def vus(id):
-    try:
-        ret = variant_col.find_one({"_id": ObjectId(id)})
-    except:
-        print("problem " + id)
-    return render_template('vus.html', variant=ret)
+    if check_if_user_active(current_user.active):
+        try:
+            ret = variant_col.find_one({"_id": ObjectId(id)})
+        except:
+            print("problem " + id)
+        return render_template('vus.html', variant=ret)
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/_get_variant_data')
 @login_required
 def get_variant_data():
-    return get_data("fullgnomen")
+    if check_if_user_active(current_user.active):
+        return get_data("fullgnomen")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/_get_gene_data')
 @login_required
 def get_gene_data():
-    return get_data("gene")
+    if check_if_user_active(current_user.active):
+        return get_data("gene")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/_get_patient_data')
 @login_required
 def get_patient_data():
-    return get_data("dn_no")
+    if check_if_user_active(current_user.active):
+        return get_data("dn_no")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/_get_all_data')
 @login_required
 def get_all_data():
-    index_column = "_id"
-    collection = "variant"
-    fields = all_fields
-    results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
-    return json.dumps(results, sort_keys=True, default=str)
-
+    if check_if_user_active(current_user.active):
+        index_column = "_id"
+        collection = "variant"
+        fields = all_fields
+        results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
+        return json.dumps(results, sort_keys=True, default=str)
+    else:
+        return redirect(url_for('login'))
 
 def get_data(group_by):
-    index_column = "_id"
-    collection = "variant"
-    results = DataTablesServer(request, columns, index_column, collection,
-                               group_by).output_result_on_queried_fields()
-    return json.dumps(results, sort_keys=True, default=str)
+    if check_if_user_active(current_user.active):
+        index_column = "_id"
+        collection = "variant"
+        results = DataTablesServer(request, columns, index_column, collection,
+                                group_by).output_result_on_queried_fields()
+        return json.dumps(results, sort_keys=True, default=str)
+    else:
+        return redirect(url_for('login'))
