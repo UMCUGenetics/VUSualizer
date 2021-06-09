@@ -14,7 +14,15 @@
         <!-- Content Row -->
         <div class="row">
             <div class="col">
-                You are currently logged in as {{ name }}.
+                You are currently logged in as {{ name }}
+                {% if not current_user.active %}
+                , however your account is not active yet. 
+                <p>Therefore you cannot access the data. For more information contact f.e.degruyter@umcutrecht.nl
+
+                <p>
+                <a class="btn btn-primary" href="{{ url_for('logout') }}">logout</a> <a class="btn btn-default" href="{{ url_for('register') }}">register</a>
+                </p>
+                {% endif %}
             </div>
         </div>
     </div>

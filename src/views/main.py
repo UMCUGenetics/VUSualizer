@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for
 from src import app, mongo
 from flask_login import login_required, current_user
 from bson import ObjectId
+from functools import wraps
 import json
 
 from src.datatable import DataTablesServer
@@ -16,6 +17,15 @@ default_fields = ["dn_no", "gene", "fullgnomen",
 default_order = {"dn_no": 1, "gene": 1, "fullgnomen": 1}
 
 variants = []
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.is_authenticated == False or check_if_user_active(current_user):
+            return redirect(url_for('account'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 def redirect_url():
@@ -55,10 +65,10 @@ def render_individual_page(group_by, id, template):
 
 
 def check_if_user_active(usercheck):
-    if usercheck == True:
-        return True
-    else:
+    if usercheck.active == True:
         return False
+    else:
+        return True
 
 
 #### END HELPER FUNCTIONS
@@ -81,128 +91,90 @@ def page_not_found(e):
 @app.route('/patient/<id>')
 @login_required
 def patient(id):
-    if check_if_user_active(current_user.active):
-        return render_individual_page("dn_no", id, "patient.html")
-    else:
-        return redirect(url_for('login'))
+    return render_individual_page("dn_no", id, "patient.html")
 
 
 @app.route('/gene/<id>')
 @login_required
 def gene(id):
-    if check_if_user_active(current_user.active):
-        return render_individual_page("gene", id, "gene.html")
-    else:
-        return redirect(url_for('login'))
+    return render_individual_page("gene", id, "gene.html")
 
 
 @app.route('/variant/<id>')
 @login_required
 def variant(id):
-    if check_if_user_active(current_user.active):
-        return render_individual_page("fullgnomen", id, "variant.html")
-    else:
-        return redirect(url_for('login'))
+    return render_individual_page("fullgnomen", id, "variant.html")
 
 
 @app.route('/genes')
 @login_required
 def genes():
-    if check_if_user_active(current_user.active):
-        return render_template("genes.html")
-    else:
-        return redirect(url_for('login'))
+    return render_template("genes.html")
 
 
 @app.route('/patients')
 @login_required
 def patients():
-    if check_if_user_active(current_user.active):
-        return render_template("patients.html")
-    else:
-        return redirect(url_for('login'))
+    return render_template("patients.html")
 
 
 @app.route('/variants')
 @login_required
 def variants():
-    if check_if_user_active(current_user.active):
-        fields = columns
-        if "protein" not in fields:
-            fields.append("protein")
-        return render_template('variants.html', fields=fields)
-    else:
-        return redirect(url_for('login'))
+    fields = columns
+    if "protein" not in fields:
+        fields.append("protein")
+    return render_template('variants.html', fields=fields)
 
 
 @app.route('/all')
 @login_required
 def all():
-    if check_if_user_active(current_user.active):
-        fields = all_fields
-        return render_template('all.html', fields=fields)
-    else:
-        return redirect(url_for('login'))
+    fields = all_fields
+    return render_template('all.html', fields=fields)
 
 
 @app.route('/vus/<id>')
 @login_required
 def vus(id):
-    if check_if_user_active(current_user.active):
-        try:
-            ret = variant_col.find_one({"_id": ObjectId(id)})
-        except:
-            print("problem " + id)
-        return render_template('vus.html', variant=ret)
-    else:
-        return redirect(url_for('login'))
+    try:
+        ret = variant_col.find_one({"_id": ObjectId(id)})
+    except:
+        print("problem " + id)
+    return render_template('vus.html', variant=ret)
 
 
 @app.route('/_get_variant_data')
 @login_required
 def get_variant_data():
-    if check_if_user_active(current_user.active):
-        return get_data("fullgnomen")
-    else:
-        return redirect(url_for('login'))
+    return get_data("fullgnomen")
 
 
 @app.route('/_get_gene_data')
 @login_required
 def get_gene_data():
-    if check_if_user_active(current_user.active):
-        return get_data("gene")
-    else:
-        return redirect(url_for('login'))
+    return get_data("gene")
 
 
 @app.route('/_get_patient_data')
 @login_required
 def get_patient_data():
-    if check_if_user_active(current_user.active):
-        return get_data("dn_no")
-    else:
-        return redirect(url_for('login'))
+    return get_data("dn_no")
 
 
 @app.route('/_get_all_data')
 @login_required
 def get_all_data():
-    if check_if_user_active(current_user.active):
-        index_column = "_id"
-        collection = "variant"
-        fields = all_fields
-        results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
-        return json.dumps(results, sort_keys=True, default=str)
-    else:
-        return redirect(url_for('login'))
+    index_column = "_id"
+    collection = "variant"
+    fields = all_fields
+    results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
+    return json.dumps(results, sort_keys=True, default=str)
+
 
 def get_data(group_by):
-    if check_if_user_active(current_user.active):
-        index_column = "_id"
-        collection = "variant"
-        results = DataTablesServer(request, columns, index_column, collection,
-                                group_by).output_result_on_queried_fields()
-        return json.dumps(results, sort_keys=True, default=str)
-    else:
-        return redirect(url_for('login'))
+    index_column = "_id"
+    collection = "variant"
+    results = DataTablesServer(request, columns, index_column, collection,
+                            group_by).output_result_on_queried_fields()
+    return json.dumps(results, sort_keys=True, default=str)
