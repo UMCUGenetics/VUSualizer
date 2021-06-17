@@ -40,7 +40,10 @@ def register():
         user = User.get(form.email.data.strip())  # strip to remove any excess spaces
         if not user:
             hashed_password = generate_password_hash(form.password.data, method='sha256')
-            new_user = User(email=form.email.data, password=hashed_password)
+            if not mongo.db.user.find_one():
+                new_user = User(email=form.email.data, password=hashed_password, active=True, role="ROLE_ADMIN")
+            else:
+                new_user = User(email=form.email.data, password=hashed_password, active=False, role="ROLE_USER")
             new_user.save_to_db()
             login_user(new_user)
             return redirect(url_for('account'))

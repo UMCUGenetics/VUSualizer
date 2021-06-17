@@ -26,7 +26,18 @@ import warnings
 import progressbar
 import argparse 
 import sys
+import logging
+import logging.config
+import yaml
 from openpyxl import load_workbook
+
+
+with open(os.path.dirname(__file__) + "/logging_config.yml", 'r') as configfile:
+    logging.config.dictConfig(yaml.safe_load(configfile))
+
+logger = logging.getLogger(__name__)
+logger.debug("File upload script 'import_data.py' started")
+#logger.basicConfig(filename=os.path.dirname(__file__) + + '/' + logger.basicConfig(filename))
 
 def argparser():
     # Override of the error function in ArgumentParser from argparse
@@ -35,6 +46,7 @@ def argparser():
         def error(self, message):
             sys.stderr.write('\nerror: %s\n' % message)
             self.print_help()
+            logger.debug('error: %s' % message)
             sys.exit(1)  # exit program
 
     # Override of adding an extra action class in Action from argparse
@@ -93,6 +105,7 @@ def main():
     with progressbar.ProgressBar(max_value=len(files)) as bar:
         i = 0
         for file in bar(files):
+            logger.debug('start uploading: %s' % file)
             i += 1
             # To prevent opening a cached version of the file
             if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
@@ -165,6 +178,7 @@ def main():
                             variant.update(patient)
                             db.insert_one(variant)
             bar.update(bar.value)
+        logger.debug('finished uploading: %s' % file)
     print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
 
 

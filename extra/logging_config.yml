@@ -1,0 +1,31 @@
+---
+
+version: 1
+disable_existing_loggers: False
+formatters:
+  standard:
+    format: '%(asctime)s [%(levelname)s] %(name)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: standard
+    stream: ext://sys.stdout
+  file:
+    class: logging.FileHandler
+    level: DEBUG
+    formatter: standard
+    filename: /data/vusualizer/VUSualizer/extra/output.log
+  email:
+    class: logging.handlers.SMTPHandler
+    level: WARNING
+    mailhost: smtp.gmail.com
+    fromaddr: to@address.co.uk
+    toaddrs: to@address.co.uk
+    subject: Oh no, something's gone wrong!
+    credentials: [email, password]
+    secure: []
+root:
+  level: DEBUG
+  handlers: [console, file, email]
+  propagate: True
