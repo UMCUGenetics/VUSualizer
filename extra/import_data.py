@@ -37,7 +37,6 @@ with open(os.path.dirname(__file__) + "/logging_config.yml", 'r') as configfile:
 
 logger = logging.getLogger(__name__)
 logger.debug("File upload script 'import_data.py' started")
-#logger.basicConfig(filename=os.path.dirname(__file__) + + '/' + logger.basicConfig(filename))
 
 def argparser():
     # Override of the error function in ArgumentParser from argparse
@@ -109,9 +108,7 @@ def main():
             i += 1
             # To prevent opening a cached version of the file
             if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
-                # print("#####\t\tParsing {}\t\t#####".format(file))
                 patient = {}
-                #patient["dn_no"] = os.path.splitext(file)[0]
                 patient["dn_no"] = os.path.splitext(os.path.basename(file))[0]
                 annotation = {}
                 data_headers = []
