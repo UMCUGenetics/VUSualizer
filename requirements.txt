@@ -2,9 +2,11 @@ click==7.1.2
 dnspython==1.16.0
 email-validator==1.1.1
 Flask==1.1.2
+Flask-Admin==1.5.8 
 Flask-Login==0.5.0
 Flask-PyMongo==2.3.0
 Flask-WTF==0.14.3
+Flask-Security==3.0.0
 idna==2.9
 itsdangerous==1.1.0
 Jinja2==2.11.3
@@ -17,3 +19,4 @@ WTForms==2.3.1
 progressbar==2.5
 progressbar2==3.51.4
 openpyxl==3.0.4
+PyYAML==5.4.1

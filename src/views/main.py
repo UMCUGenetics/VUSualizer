@@ -1,7 +1,8 @@
 from flask import render_template, request, redirect, url_for
 from src import app, mongo
-from flask_login import login_required
+from flask_login import login_required, current_user
 from bson import ObjectId
+from functools import wraps
 import json
 
 from src.datatable import DataTablesServer
@@ -16,6 +17,15 @@ default_fields = ["dn_no", "gene", "fullgnomen",
 default_order = {"dn_no": 1, "gene": 1, "fullgnomen": 1}
 
 variants = []
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.is_authenticated == False or check_if_user_active(current_user):
+            return redirect(url_for('account'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 def redirect_url():
@@ -52,6 +62,13 @@ def render_individual_page(group_by, id, template):
     # remove group_by from the fields list as its displayed at top of page and redundant for every row
     fields = list(filter(lambda x: x != group_by, default_fields))
     return render_template(template, variants=variants, fields=fields, id=id)
+
+
+def check_if_user_active(usercheck):
+    if usercheck.active == True:
+        return False
+    else:
+        return True
 
 
 #### END HELPER FUNCTIONS
@@ -159,5 +176,5 @@ def get_data(group_by):
     index_column = "_id"
     collection = "variant"
     results = DataTablesServer(request, columns, index_column, collection,
-                               group_by).output_result_on_queried_fields()
+                            group_by).output_result_on_queried_fields()
     return json.dumps(results, sort_keys=True, default=str)
