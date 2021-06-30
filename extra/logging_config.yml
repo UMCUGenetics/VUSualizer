@@ -18,5 +18,5 @@ handlers:
     filename: /data/vusualizer/VUSualizer/extra/output.log
 root:
   level: DEBUG
-  handlers: [console, file, email]
+  handlers: [console, file]
   propagate: True

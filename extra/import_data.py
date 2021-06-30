@@ -110,6 +110,11 @@ def main():
             if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
                 patient = {}
                 patient["dn_no"] = os.path.splitext(os.path.basename(file))[0]
+                # If DNxxx.xlsx file is already in MongoDB, then first remove the old one.
+                if db.count({ "dn_no" : patient["dn_no"] }) > 0:
+                    logger.debug('dn_no: %s already present, start reuploading' % patient["dn_no"])
+                    db.delete_many( { "dn_no" : patient["dn_no"] } )
+                    logger.debug('removed: %s from database' % patient["dn_no"])
                 annotation = {}
                 data_headers = []
                 section = ""
@@ -176,6 +181,8 @@ def main():
                             db.insert_one(variant)
             bar.update(bar.value)
         logger.debug('finished uploading: %s' % file)
+        # Moves file to other folder, to make uploading a new file (with same filename) possible on the UMCU server (for replacing)
+        os.replace(file, os.path.dirname(__file__) + "/verwerkt/" + os.path.basename(file))
     print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
 
 
