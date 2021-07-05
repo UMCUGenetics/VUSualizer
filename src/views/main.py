@@ -46,7 +46,7 @@ all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "cnomen", "pnomen", "
               "omimmorbidphenotype", "omimmorbidgenemim"]
 
 
-#### START HELPER FUNCTIONS
+# START HELPER FUNCTIONS
 
 def group_and_count_on_field(field):
     agg = variant_col.aggregate([
@@ -71,7 +71,7 @@ def check_if_user_active(usercheck):
         return True
 
 
-#### END HELPER FUNCTIONS
+# END HELPER FUNCTIONS
 
 @app.route('/')
 def index():
@@ -168,7 +168,8 @@ def get_all_data():
     index_column = "_id"
     collection = "variant"
     fields = all_fields
-    results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
+    results = DataTablesServer(
+        request, fields, index_column, collection).output_result_on_given_fields()
     return json.dumps(results, sort_keys=True, default=str)
 
 
@@ -176,5 +177,5 @@ def get_data(group_by):
     index_column = "_id"
     collection = "variant"
     results = DataTablesServer(request, columns, index_column, collection,
-                            group_by).output_result_on_queried_fields()
+                               group_by).output_result_on_queried_fields()
     return json.dumps(results, sort_keys=True, default=str)

@@ -1,3 +1,4 @@
+from src import app as application
 import sys
 
 sys.path.insert(0, '/')  # /data/vusualizer/VUSualizer
@@ -12,8 +13,6 @@ class WSGIMiddleware(object):
         environ['SCRIPT_NAME'] = self.prefix
         return self.app(environ, start_response)
 
-
-from src import app as application
 
 # Set any url prefix (script_root) here eg. /vusualizer
 application.wsgi_app = WSGIMiddleware(application.wsgi_app, "/")

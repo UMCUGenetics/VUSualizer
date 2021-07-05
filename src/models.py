@@ -6,7 +6,7 @@ from src import mongo, forms
 import json
 from . import app
 
-# User admin
+
 class User(UserMixin):
     def __init__(self, email, password, role, active):
         self.id = email
@@ -26,7 +26,7 @@ class User(UserMixin):
 
     def get_id(self):
         return self.email
-    
+
     def get_role(self):
         return self.role
 
@@ -35,7 +35,7 @@ class User(UserMixin):
         data = mongo.db.user.find_one({"email": email}, {"_id": 0})
         if data is not None:
             return cls(email, data['password'], data['role'], data['active'])
-    
+
     # Required for administrative interface
     def __unicode__(self):
         return self.login
