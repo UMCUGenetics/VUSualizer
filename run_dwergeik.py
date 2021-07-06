@@ -1,7 +1,13 @@
+'''
+Settings and start-script for activating the VUSualizer on the server.
+Use this run.py on the serverside. change name of run_dwergeik.py to run.py
+The original run.py is for using VUSualizer locally
+'''
+
 from src import app as application
 import sys
 
-# /data/vusualizer/VUSualizer
+# /data/vusualizer/VUSualizer, use location of VUSualizer on the serverside
 sys.path.insert(0, '/data/vusualizer/VUSualizer')
 
 

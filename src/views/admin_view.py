@@ -7,7 +7,7 @@ from .. import admin
 from src.models import User
 
 
-# Customized admin views
+# Customized admin views, user form used in the UserView
 class UserForm(form.Form):
     name = fields.StringField('Name')
     email = fields.StringField('Email')
@@ -15,11 +15,11 @@ class UserForm(form.Form):
     active = fields.BooleanField('Active')
     role = fields.StringField('Role')
 
-
+# add UserView, where admin can change properties of users
 class UserView(ModelView):
 
     def is_accessible(self):
-        # return current_user.role
+        '''Only allow access to adminpages if user has an admin role. Wrapper for the Flask is_accessible function'''
         if current_user.is_authenticated:
             return current_user.role == "ROLE_ADMIN"
         else:
@@ -29,9 +29,10 @@ class UserView(ModelView):
         # redirect to login page if user doesn't have access
         return redirect(url_for('login', next=request.url))
 
+    # which properties of users are shown and editable in UserView
     column_list = ('_id', 'email', 'active', 'role')
     column_sortable_list = ('_id', 'email', 'active', 'role')
-    form = UserForm
+    form = UserForm  # use this Form
 
 
 # Add view

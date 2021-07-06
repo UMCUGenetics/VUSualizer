@@ -31,7 +31,7 @@ import logging.config
 import yaml
 from openpyxl import load_workbook
 
-
+# configuration for the logging file. This file logs the import of excel files into MongoDB and errors
 with open(os.path.dirname(__file__) + "/logging_config.yml", 'r') as configfile:
     logging.config.dictConfig(yaml.safe_load(configfile))
 
@@ -40,6 +40,9 @@ logger.debug("File upload script 'import_data.py' started")
 
 
 def argparser():
+    # function to enable commandline help functions. Makes use of the argparse installation.
+    # also makes sure that required parameters are used, with basic file extension checks
+
     # Override of the error function in ArgumentParser from argparse
     # To display the original error message + help page in the terminal, when the wrong or no arguments are given
     class DefaultHelpParser(argparse.ArgumentParser):
@@ -96,15 +99,17 @@ def argparser():
 
 
 def main():
+    '''Main function, for extracting the data from the excelformat and parse to the MongoDB'''
+    # connection with MongoDB and the correct collection "vus"
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client.vus.variant
-    files = argparser()
+    files = argparser()  # get the files from the -f parameter
 
     # quiet the warning when loading the first xlsx
     warnings.simplefilter("ignore")
-
     start_time = time.time()
 
+    # TODO: remove the progressbar dependency. Not needed for functionality and logging takes care of keeping track of files
     with progressbar.ProgressBar(max_value=len(files)) as bar:
         i = 0
         for file in bar(files):

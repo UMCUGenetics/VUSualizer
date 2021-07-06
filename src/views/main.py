@@ -1,25 +1,25 @@
 from flask import render_template, request, redirect, url_for
 from src import app, mongo
+from src.datatable import DataTablesServer
 from flask_login import login_required, current_user
 from bson import ObjectId
 from functools import wraps
 import json
 
-from src.datatable import DataTablesServer
 
+# make connection with MongoDB data
 variant_col = mongo.db.variant
 user_col = mongo.db.user
 
 columns = ['#', '_id', 'total']
-
 default_fields = ["dn_no", "gene", "fullgnomen",
                   "pnomen", "omim(r)_refs", "omim(r)_morbid_refs"]
 default_order = {"dn_no": 1, "gene": 1, "fullgnomen": 1}
-
 variants = []
 
 
 def login_required(f):
+    '''Wrapper around the login_required() function of Flask, to also check the active status of the user'''
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.is_authenticated == False or check_if_user_active(current_user):
@@ -29,15 +29,8 @@ def login_required(f):
 
 
 def redirect_url():
+    '''For redirecting the user to another page'''
     return request.args.get('next') or request.referrer or url_for('index')
-
-
-def get_all_fields():
-    uwu = variant_col.aggregate(
-        [{"$project": {"arrayofkeyvalue": {"$objectToArray": "$$ROOT"}}}, {"$unwind": "$arrayofkeyvalue"},
-         {"$group": {"_id": None, "all_keys": {"$addToSet": "$arrayofkeyvalue.k"}}}])
-    # print(list(uwu))
-    return (list(uwu)[0]['all_keys'])
 
 
 all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "cnomen", "pnomen", "exon", "classification",
@@ -49,6 +42,7 @@ all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "cnomen", "pnomen", "
 # START HELPER FUNCTIONS
 
 def group_and_count_on_field(field):
+    '''Used for generating the totals on the Home page (app-route index)'''
     agg = variant_col.aggregate([
         {'$group': {'_id': field}},
         {'$count': "tot"}
@@ -58,6 +52,7 @@ def group_and_count_on_field(field):
 
 
 def render_individual_page(group_by, id, template):
+    "render individual page, for example patients-->patient or variants-->variant"
     variants = variant_col.find({group_by: id})
     # remove group_by from the fields list as its displayed at top of page and redundant for every row
     fields = list(filter(lambda x: x != group_by, default_fields))
@@ -73,6 +68,7 @@ def check_if_user_active(usercheck):
 
 # END HELPER FUNCTIONS
 
+# app.route functions
 @app.route('/')
 def index():
     total_count = variant_col.find().count()

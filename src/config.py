@@ -1,3 +1,8 @@
+'''
+Used by __init__.py to set the MongoDB configuration for the whole app
+The app can then be references/imported by other script using the __init__.py
+'''
+
 DEBUG = True
 TESTING = True
 
@@ -16,5 +21,3 @@ DEBUG_TB_PANELS = (
     'flask_debugtoolbar.panels.logger.LoggingPanel',
     'flask_mongoengine.panels.MongoDebugPanel'
 )
-
-# REMEMBER_COOKIE_DURATION = timedelta(seconds=20)

@@ -1,7 +1,12 @@
+'''
+Settings and start-script for activating the VUSualizer.
+Use this run.py to start VUSualizer locally
+'''
+
 from src import app as application
 import sys
 
-sys.path.insert(0, '/')  # /data/vusualizer/VUSualizer
+sys.path.insert(0, '/')
 
 
 class WSGIMiddleware(object):
