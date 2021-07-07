@@ -53,8 +53,7 @@ class DataTablesServer:
                     val = ", ".join(val)
 
                 if isinstance(val, str):
-                    val = (val[:max_string_length] +
-                           '...') if len(val) > max_string_length else val
+                    val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
 
                 uwu = ""
                 if col == "fullgnomen":
@@ -154,14 +153,11 @@ class DataTablesServer:
 
         if group:
             # total amount unfiltered & total amount filtered (search bar)
-            self.records_total = len(
-                list(self.dbh[self.collection].aggregate([group])))
-            self.records_filtered = len(
-                list(self.dbh[self.collection].aggregate([group, match])))
+            self.records_total = len(list(self.dbh[self.collection].aggregate([group])))
+            self.records_filtered = len(list(self.dbh[self.collection].aggregate([group, match])))
         else:
             self.records_total = len(list(self.dbh[self.collection].find()))
-            self.records_filtered = len(
-                list(self.dbh[self.collection].find(filter)))
+            self.records_filtered = len(list(self.dbh[self.collection].find(filter)))
 
     def filtering(self):
         """
@@ -181,8 +177,7 @@ class DataTablesServer:
             for k, v in self.request["columns"].items():
                 column_filter = {}
                 try:
-                    column_filter[self.columns[k]] = {
-                        '$regex': self.request['search']['value'], '$options': 'i'}
+                    column_filter[self.columns[k]] = {'$regex': self.request['search']['value'], '$options': 'i'}
                     or_filter_on_all_columns.append(column_filter)
                 except:
                     print(str(k), " is out of range prob")

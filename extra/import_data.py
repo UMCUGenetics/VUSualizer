@@ -121,11 +121,9 @@ def main():
                 patient["dn_no"] = os.path.splitext(os.path.basename(file))[0]
                 # If DNxxx.xlsx file is already in MongoDB, then first remove the old one.
                 if db.count({"dn_no": patient["dn_no"]}) > 0:
-                    logger.debug(
-                        'dn_no: %s already present, start reuploading' % patient["dn_no"])
+                    logger.debug('dn_no: %s already present, start reuploading' % patient["dn_no"])
                     db.delete_many({"dn_no": patient["dn_no"]})
-                    logger.debug('removed: %s from database' %
-                                 patient["dn_no"])
+                    logger.debug('removed: %s from database' % patient["dn_no"])
                 annotation = {}
                 data_headers = []
                 section = ""
@@ -145,15 +143,13 @@ def main():
                         section = "annotation"
                     elif section == "annotation" and row[2].value is None:
                         # print("### Detected switch to Data Table section")
-                        # add previous section to total patient info
-                        patient["annotation_sources"] = annotation
+                        patient["annotation_sources"] = annotation  # add previous section to total patient info
                         section = "data_table"
                         continue  # skip empty row
 
                     # Parse data based on current section
                     if section == "metadata":
-                        patient[row[0].value.replace(".", "").replace(
-                            " ", "_").lower()] = row[2].value
+                        patient[row[0].value.replace(".", "").replace(" ", "_").lower()] = row[2].value
                         pass
                     elif section == "annotation":
                         annotation[row[2].value] = row[3].value
@@ -164,8 +160,7 @@ def main():
                         else:  # values
                             variant = {}
                             for i in range(len(data_headers)):  # iterate headers
-                                key = data_headers[i].replace(
-                                    " ", "_").replace(".", "\uff0e").lower()
+                                key = data_headers[i].replace(" ", "_").replace(".", "\uff0e").lower()
 
                                 # skip everything that starts with father or mother etc since the key
                                 # name contains patient number of parents
@@ -186,8 +181,7 @@ def main():
                                     val = {}
                                     for label in labels:
                                         labelInfo = label.split(",")
-                                        val[labelInfo[0].replace(" ", "_").replace(
-                                            ".", "\uff0e").lower()] = labelInfo[1]
+                                        val[labelInfo[0].replace(" ", "_").replace(".", "\uff0e").lower()] = labelInfo[1]
                                 if val is not None and val != "":
                                     variant[key] = val
 
@@ -197,10 +191,8 @@ def main():
             bar.update(bar.value)
         logger.debug('finished uploading: %s' % file)
         # Moves file to other folder, to make uploading a new file (with same filename) possible on the UMCU server (for replacing)
-        os.replace(file, os.path.dirname(__file__) +
-                   "/verwerkt/" + os.path.basename(file))
-    print("## \t\tFinished in {0:.2f} minutes".format(
-        (time.time() - start_time) / 60))
+        os.replace(file, os.path.dirname(__file__) + "/verwerkt/" + os.path.basename(file))
+    print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
 
 
 main()

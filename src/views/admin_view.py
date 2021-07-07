@@ -32,7 +32,7 @@ class UserView(ModelView):
     # which properties of users are shown and editable in UserView
     column_list = ('_id', 'email', 'active', 'role')
     column_sortable_list = ('_id', 'email', 'active', 'role')
-    form = UserForm  # use this Form
+    form = UserForm
 
 
 # Add view

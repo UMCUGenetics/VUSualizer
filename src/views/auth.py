@@ -15,8 +15,7 @@ def load_user(user_id):
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        # strip to remove any excess spaces
-        user = User.get(form.email.data.strip())
+        user = User.get(form.email.data.strip())  # strip to remove any excess spaces
         if user:
             print(user)
             if check_password_hash(user.password, form.password.data):
@@ -38,17 +37,13 @@ def logout():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        # strip to remove any excess spaces
-        user = User.get(form.email.data.strip())
+        user = User.get(form.email.data.strip())  # strip to remove any excess spaces
         if not user:
-            hashed_password = generate_password_hash(
-                form.password.data, method='sha256')
+            hashed_password = generate_password_hash(form.password.data, method='sha256')
             if not mongo.db.user.find_one():
-                new_user = User(
-                    email=form.email.data, password=hashed_password, active=True, role="ROLE_ADMIN")
+                new_user = User(email=form.email.data, password=hashed_password, active=True, role="ROLE_ADMIN")
             else:
-                new_user = User(
-                    email=form.email.data, password=hashed_password, active=False, role="ROLE_USER")
+                new_user = User(email=form.email.data, password=hashed_password, active=False, role="ROLE_USER")
             new_user.save_to_db()
             login_user(new_user)
             return redirect(url_for('account'))
