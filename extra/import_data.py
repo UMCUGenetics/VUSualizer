@@ -60,10 +60,8 @@ def argparser():
                 for f in fname:
                     ext = os.path.splitext(f)[1][1:]
                     if ext not in choices:
-                        option_string = '({})'.format(
-                            option_string) if option_string else ''
-                        parser.error("file doesn't end with {}{}".format(
-                            choices, option_string))  # display error message
+                        option_string = '({})'.format(option_string) if option_string else ''
+                        parser.error("file doesn't end with {}{}".format(choices, option_string))  # display error message
                     else:
                         setattr(namespace, self.dest, fname)
         return Act
