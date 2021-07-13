@@ -90,7 +90,8 @@ def argparser():
         required=True,
         nargs='+',
         action=CheckExt({'xlsx'}),
-        help=".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'")
+        help=(".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, "
+              "seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'"))
 
     args = parser.parse_args()
     return args.file

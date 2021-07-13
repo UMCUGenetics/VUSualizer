@@ -15,20 +15,20 @@
             {% endif %}
             {% if not current_user.is_authenticated %}
             <p>You are currently logged in as {{ current_user.email }}, with role {{ current_user.role }}
-            <p>You are not an Admin user and can therefore not access the Admin views. For more information contact
-                bioinformatica-genetica@umcutrecht.nl
+            <p>You are not an Admin user and can therefore not access the Admin views.
+                For more information contact bioinformatica-genetica@umcutrecht.nl
 
             <p>
-                <a class="btn btn-primary" href="{{ url_for('login') }}">login</a> <a class="btn btn-default"
-                    href="{{ url_for('register') }}">register</a>
+                <a class="btn btn-primary" href="{{ url_for('login') }}">login</a>
+                <a class="btn btn-default" href="{{ url_for('register') }}">register</a>
             </p>
             {% endif %}
             <p>
                 <a class="btn btn-default" href="{{ url_for('logout') }}">logout</a>
             </p>
             <p>
-                <a class="btn btn-primary" href="/"><i class="glyphicon glyphicon-chevron-left"></i> Back to
-                    VUSualizer</a>
+                <a class="btn btn-primary" href="/">
+                    <i class="glyphicon glyphicon-chevron-left"></i> Back to VUSualizer</a>
             </p>
         </div>
     </div>
