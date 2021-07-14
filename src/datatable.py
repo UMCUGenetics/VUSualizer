@@ -35,7 +35,6 @@ class DataTablesServer:
         i = self.paging().start
 
         for row in self.result_data:
-            # print(row)
             data_row = []
             i += 1
             # data_row["#"] = i
@@ -78,16 +77,7 @@ class DataTablesServer:
                 # data_row[col] = uwu
                 data_row.append(uwu)
             data_rows.append(data_row)
-        """
-        for row in self.result_data:
-            one_row = []
-            for k, v in row.items():
-                one_row.append(v)
-            data_rows.append(one_row)
-        """
-
         output['data'] = data_rows
-        # print(output)
         return output
 
     def output_result_on_queried_fields(self):
@@ -192,7 +182,6 @@ class DataTablesServer:
                 except:
                     print(str(k), " is out of range prob")
             filter['$or'] = or_filter_on_all_columns
-            # print(filter)
         return filter
 
     def sorting(self):
@@ -207,7 +196,6 @@ class DataTablesServer:
         :return: order dict { col name : direction }
         """
         order = {}
-
         # translation for sorting between datatables api and mongodb
         order_dict = {'asc': 1, 'desc': -1}
 
@@ -217,7 +205,7 @@ class DataTablesServer:
 
     def paging(self):
         pages = namedtuple('pages', ['start', 'length'])
-        if (self.request['start'] != ""):  # and (int(self.request['iDisplayLength']) != -1):
+        if (self.request['start'] != ""):
             pages.start = int(self.request['start'])
             pages.length = int(self.request['length'])
         return pages

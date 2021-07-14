@@ -24,21 +24,25 @@ import time
 import pymongo
 import warnings
 import progressbar
-import argparse 
+import argparse
 import sys
 import logging
 import logging.config
 import yaml
 from openpyxl import load_workbook
 
-
+# configuration for the logging file. This file logs the import of excel files into MongoDB and errors
 with open(os.path.dirname(__file__) + "/logging_config.yml", 'r') as configfile:
     logging.config.dictConfig(yaml.safe_load(configfile))
 
 logger = logging.getLogger(__name__)
 logger.debug("File upload script 'import_data.py' started")
 
+
 def argparser():
+    # function to enable commandline help functions. Makes use of the argparse installation.
+    # also makes sure that required parameters are used, with basic file extension checks
+
     # Override of the error function in ArgumentParser from argparse
     # To display the original error message + help page in the terminal, when the wrong or no arguments are given
     class DefaultHelpParser(argparse.ArgumentParser):
@@ -65,42 +69,46 @@ def argparser():
     # required arguments and optional arguments for the terminal. A help page is automatically generated.
     parser = DefaultHelpParser(
         description=(
-        "VUSualizer import data:\n"
-        "Imports data from 'O:\AMG_bijlagen_WES_uitslagen' after transferring this data into\n"
-        "the Dwergeik UMCU server. An additional script will notice new files in this folder\n"
-        "and use these as a parameter for this script. This will update the local MongoDB."
-        ),        
+            "VUSualizer import data:\n"
+            "Imports data from 'O:\AMG_bijlagen_WES_uitslagen' after transferring this data into\n"
+            "the Dwergeik UMCU server. An additional script will notice new files in this folder\n"
+            "and use these as a parameter for this script. This will update the local MongoDB."
+        ),
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "-v", 
-        "--version", 
-        action='version', 
+        "-v",
+        "--version",
+        action='version',
         version='%(prog)s 1.0')
     # puts following arguments under 'required', rather than the default 'optional'
     required_argument = parser.add_argument_group('required arguments')
     # add other file-extensions if needed: for example: CheckExt({'xlsx', 'xls})
     required_argument.add_argument(
-        "-f", 
-        "--file", 
-        metavar='', 
-        required=True, 
-        nargs='+', 
+        "-f",
+        "--file",
+        metavar='',
+        required=True,
+        nargs='+',
         action=CheckExt({'xlsx'}),
-        help=".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'" )
+        help=(".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, "
+              "seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'"))
 
     args = parser.parse_args()
     return args.file
 
+
 def main():
+    '''Main function, for extracting the data from the excelformat and parse to the MongoDB'''
+    # connection with MongoDB and the correct collection "vus"
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client.vus.variant
-    files = argparser()
+    files = argparser()  # get the files from the -f parameter
 
     # quiet the warning when loading the first xlsx
     warnings.simplefilter("ignore")
-
     start_time = time.time()
 
+    # TODO: remove the progressbar dependency. Not needed for functionality and logging takes care of keeping track of files
     with progressbar.ProgressBar(max_value=len(files)) as bar:
         i = 0
         for file in bar(files):
@@ -111,9 +119,9 @@ def main():
                 patient = {}
                 patient["dn_no"] = os.path.splitext(os.path.basename(file))[0]
                 # If DNxxx.xlsx file is already in MongoDB, then first remove the old one.
-                if db.count({ "dn_no" : patient["dn_no"] }) > 0:
+                if db.count({"dn_no": patient["dn_no"]}) > 0:
                     logger.debug('dn_no: %s already present, start reuploading' % patient["dn_no"])
-                    db.delete_many( { "dn_no" : patient["dn_no"] } )
+                    db.delete_many({"dn_no": patient["dn_no"]})
                     logger.debug('removed: %s from database' % patient["dn_no"])
                 annotation = {}
                 data_headers = []
@@ -157,7 +165,7 @@ def main():
                                 # name contains patient number of parents
                                 # TODO: implement this properly
                                 if key.startswith("father") or key.startswith("mother") \
-                                    or key.startswith("brother") or key.startswith("sister"):
+                                        or key.startswith("brother") or key.startswith("sister"):
                                     continue
 
                                 # only use the name inbetween brackets to store, if last char is a right bracket
