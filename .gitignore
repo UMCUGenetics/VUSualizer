@@ -3,5 +3,7 @@ __pycache__
 *.xml
 venv/
 extra/input/*
+extra/verwerkt/*
+extra/output.log
 .DS_Store
 extra/.DS_Store
