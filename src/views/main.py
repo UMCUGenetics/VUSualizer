@@ -35,7 +35,7 @@ def redirect_url():
 
 all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "cnomen", "pnomen", "exon", "classification",
               "codingeffect", "zygosity", "allelic_depth_allele_1", "allelic_depth_allele_2",
-              "inheritance_mode", "inherited_from", "variant_assessment",
+              "inheritanceMode", "inheritedFrom", "variantAssessment",
               "omimmorbidphenotype", "omimmorbidgenemim"]
 
 
