@@ -13,7 +13,7 @@ handlers:
     stream: ext://sys.stdout
   file:
     class: logging.FileHandler
-    level: DEBUG
+    level: INFO
     formatter: standard
     filename: /data/vusualizer/VUSualizer/extra/output.log
 root:

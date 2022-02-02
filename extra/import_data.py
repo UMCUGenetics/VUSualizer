@@ -2,6 +2,7 @@
 
 import os
 import time
+import sys
 import pymongo
 import logging
 import logging.config
@@ -21,7 +22,7 @@ with open("./logging_config.yml", 'r') as configfile:
     logging.config.dictConfig(yaml.safe_load(configfile))
 
 logger = logging.getLogger(__name__)
-logger.debug("File upload script 'import_data.py' started")
+logger.info("File upload script 'import_data.py' started")
 start_time = time.time()
 
 def main():
@@ -29,12 +30,12 @@ def main():
     for analysis in client.get_analyses(status='COMPLETED', 
                                         created_after='2021-01-01T00:00:00.000+0000', 
                                         analysisPipelineName='ONB01',
-                                        analysisType='INHERITANCE')[:1]: #remove [:x] if all
+                                        analysisType='INHERITANCE'): #add [:x] for testing x times
         if not analysis['classificationTreeName']:  # Skip analysis
             continue
         else:
             patient_dn_no = client.get_report(analysis['id'])[0]['reportName'].split("_")[0]
-            logger.debug('start Alissa retrieval of: %s' % patient_dn_no)
+            logger.info('start Alissa retrieval of: %s' % patient_dn_no)
             ONB01_analysis = client.get_inheritance_analyses(analysis['id'])
             accession_number = client.get_patient(analysis['patientId'])['accessionNumber']
             export_id = client.post_inheritance_analyses_variants_export(analysis['id'], marked_review=True, marked_include_report=False)['exportId']
@@ -50,19 +51,44 @@ def main():
                 except HTTPError as exception:
                     print(exception)
                     pass
-            logger.debug('Alissa retrieval completed of: %s' % patient_dn_no)
-            upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient_dn_no, VUS_response)
+            logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
+            # sometimes the there are no VUS marked or found, then no info needs to be uploaded
+            if VUS_response == []:
+                logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
+                continue
+            else:
+                upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient_dn_no, VUS_response)
 
 def upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient_dn_no, VUS_response):
     '''Function, for parsing data to the MongoDB'''
     # connection with MongoDB and the correct collection "vus"
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client.vus.variant
+    
+    # if DNnr already in mongoDB, check if updated an replace if neccesary
+    if db.count_documents({"dn_no": patient_dn_no}) > 0:
+        logger.info('dn_no: %s already present' % patient_dn_no)
+        # get and parse "lastUpdatedOn" from MongoDB/Alissa for specific patient_dn_no
+        lastUpdatedOn_mongoDB = db.find_one({"dn_no" : patient_dn_no}, {"lastUpdatedOn":1, "_id":0})
+        for key, value in lastUpdatedOn_mongoDB.items():
+            lastUpdatedOn_mongoDB = value
+        lastUpdatedOn_Alissa = ONB01_analysis['lastUpdatedOn']
+        if lastUpdatedOn_Alissa == lastUpdatedOn_mongoDB:
+            logger.info('%s already in database, lastUpdatedOn Alissa is the same' % patient_dn_no) 
+            return
+        elif lastUpdatedOn_Alissa > lastUpdatedOn_mongoDB:
+            db.delete_many({"dn_no": patient_dn_no})
+            logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
+        elif lastUpdatedOn_Alissa < lastUpdatedOn_mongoDB:
+            logger.info('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
+            sys.exit('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
+        else:
+            logger.info('unknown error lastUpdatedOn for patient %s, this should not happen' % patient_dn_no)
+            sys.exit('unknown error lastUpdatedOn for patient %s, this should not happen' % patient_dn_no)
 
     patient = {}
     patient["dn_no"] = patient_dn_no
-    logger.debug('start uploading to mongodb: %s' % patient_dn_no)
-    
+    logger.info('start uploading to mongodb: %s' % patient_dn_no)
     patient["patient_accession_no"] = accession_number
     patient.update(ONB01_analysis)
     patient["analysis"] = patient.pop("reference")
@@ -92,9 +118,9 @@ def upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient
             variant = item
             variant.update(patient)
             db.insert_one(variant)
+    logger.info('finished uploading to mongodb: %s' % patient_dn_no)
 
-    logger.debug('finished uploading to mongodb: %s' % patient_dn_no)
-    print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
 
 if __name__ == '__main__':
     main()
+    print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
