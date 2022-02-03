@@ -10,6 +10,7 @@ import yaml
 import config
 from requests.exceptions import HTTPError
 from alissa_interpret_client.alissa_interpret import AlissaInterpret
+from datetime import datetime
 
 # Create Alissa connection based on config.py (fill details there)
 client = AlissaInterpret(
@@ -23,17 +24,32 @@ with open("./logging_config.yml", 'r') as configfile:
 
 logger = logging.getLogger(__name__)
 logger.info("File upload script 'import_data.py' started")
-start_time = time.time()
+
+# start_time of script functions
+start_time = datetime.utcnow().isoformat()
+
 
 def main():
     '''Main function, for extracting the data from the Alissa output and send to function to parse to MongoDB'''
+     # connection with MongoDB and the correct database "vus" and collection "lastUpdatedOn"
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = client.vus.lastUpdatedOn
+    
+    # Retrieve the last time MongoDB has updated itself, to filter the latest Alissa analyses only
+    lastUpdatedOn_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
+    #If not exist yet, use '2018-01-01T00:00:00.000+0000' and add to mongo (first time use)
+    if lastUpdatedOn_mongoDB is None:
+        db.replace_one({"version" : 1}, {"lastUpdatedOn" : '2018-01-01T00:00:00.000+0000', "version" : 1}, True)
+    
+    # retrieving data from Alissa
     for analysis in client.get_analyses(status='COMPLETED', 
-                                        created_after='2021-01-01T00:00:00.000+0000', 
+                                        updated_after=lastUpdatedOn_mongoDB, # format is '2020-01-01T00:00:00.000+0000'
                                         analysisPipelineName='ONB01',
-                                        analysisType='INHERITANCE'): #add [:x] for testing x times
+                                        analysisType='INHERITANCE'): #add for testing [:x], where x is numer of iterations
         if not analysis['classificationTreeName']:  # Skip analysis
             continue
         else:
+            # retrieve basic info from Alissa about the analysis
             patient_dn_no = client.get_report(analysis['id'])[0]['reportName'].split("_")[0]
             logger.info('start Alissa retrieval of: %s' % patient_dn_no)
             ONB01_analysis = client.get_inheritance_analyses(analysis['id'])
@@ -41,7 +57,7 @@ def main():
             export_id = client.post_inheritance_analyses_variants_export(analysis['id'], marked_review=True, marked_include_report=False)['exportId']
             analyis_sources = client.get_sources(analysis['id'])
             
-            
+            # retrieve the VUS/GUS info based on the analysis ID
             VUS_response = None
             while VUS_response is None:
                 try:
@@ -52,16 +68,19 @@ def main():
                     print(exception)
                     pass
             logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
-            # sometimes the there are no VUS marked or found, then no info needs to be uploaded
+            # sometimes the there are no VUS marked or found within an analysis, then no info needs to be uploaded
             if VUS_response == []:
                 logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
                 continue
             else:
                 upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient_dn_no, VUS_response)
+    #after uploading all analyses to MongoDB, replace time of last upload with starttime of script (before calling Alissa)
+    db.replace_one({"version" : 1}, {"lastUpdatedOn" : start_time, "version" : 1}, True)
+
 
 def upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient_dn_no, VUS_response):
     '''Function, for parsing data to the MongoDB'''
-    # connection with MongoDB and the correct collection "vus"
+    # connection with MongoDB and the correct database "vus" and collection "variant"
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client.vus.variant
     
@@ -86,6 +105,7 @@ def upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient
             logger.info('unknown error lastUpdatedOn for patient %s, this should not happen' % patient_dn_no)
             sys.exit('unknown error lastUpdatedOn for patient %s, this should not happen' % patient_dn_no)
 
+    # get all relevant info from one patient into one dictionary.
     patient = {}
     patient["dn_no"] = patient_dn_no
     logger.info('start uploading to mongodb: %s' % patient_dn_no)
@@ -115,12 +135,14 @@ def upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient
     
     # add VUS info to patientdata
     for item in variants:
-            variant = item
-            variant.update(patient)
-            db.insert_one(variant)
+        variant = item
+        variant.update(patient)
+        db.insert_one(variant)
     logger.info('finished uploading to mongodb: %s' % patient_dn_no)
 
 
 if __name__ == '__main__':
     main()
-    print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
+    end_time = datetime.utcnow().isoformat()
+    diff = (datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S.%f") - datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%f"))
+    print("## \t\tFinished in %.2f minutes" % (diff.total_seconds()/60))
