@@ -42,9 +42,12 @@ def main():
         db.replace_one({"version" : 1}, {"lastUpdatedOn" : '2018-01-01T00:00:00.000+0000', "version" : 1}, True)
         lastUpdatedOn_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
     
+    for key, value in lastUpdatedOn_mongoDB.items():
+        lastUpdatedOn_mongoDB = value
+    
     # retrieving data from Alissa
     for analysis in client.get_analyses(status='COMPLETED', 
-                                        lastUpdatedAfter=lastUpdatedOn_mongoDB, # format is '2020-01-01T00:00:00.000+0000'
+                                        lastUpdatedAfter=lastUpdatedOn_mongoDB.strftime('%Y-%m-%dT%H:%M:%S.%f+0000'), # format is '2020-01-01T00:00:00.000+0000'
                                         analysisPipelineName='ONB01',
                                         analysisType='INHERITANCE'): #add for testing [:x], where x is numer of iterations
         if not analysis['classificationTreeName']:  # Skip analysis
