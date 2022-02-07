@@ -32,14 +32,15 @@ start_time = datetime.utcnow().isoformat()
 def main():
     '''Main function, for extracting the data from the Alissa output and send to function to parse to MongoDB'''
      # connection with MongoDB and the correct database "vus" and collection "lastUpdatedOn"
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
-    db = client.vus.lastUpdatedOn
+    mongoclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = mongoclient.vus.lastUpdatedOn
     
     # Retrieve the last time MongoDB has updated itself, to filter the latest Alissa analyses only
     lastUpdatedOn_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
     #If not exist yet, use '2018-01-01T00:00:00.000+0000' and add to mongo (first time use)
     if lastUpdatedOn_mongoDB is None:
         db.replace_one({"version" : 1}, {"lastUpdatedOn" : '2018-01-01T00:00:00.000+0000', "version" : 1}, True)
+        lastUpdatedOn_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
     
     # retrieving data from Alissa
     for analysis in client.get_analyses(status='COMPLETED', 
@@ -81,8 +82,8 @@ def main():
 def upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient_dn_no, VUS_response):
     '''Function, for parsing data to the MongoDB'''
     # connection with MongoDB and the correct database "vus" and collection "variant"
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
-    db = client.vus.variant
+    mongoclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = mongoclient.vus.variant
     
     # if DNnr already in mongoDB, check if updated an replace if neccesary
     if db.count_documents({"dn_no": patient_dn_no}) > 0:
