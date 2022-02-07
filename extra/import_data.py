@@ -44,7 +44,7 @@ def main():
     
     # retrieving data from Alissa
     for analysis in client.get_analyses(status='COMPLETED', 
-                                        updated_after=lastUpdatedOn_mongoDB, # format is '2020-01-01T00:00:00.000+0000'
+                                        lastUpdatedOn=lastUpdatedOn_mongoDB, # format is '2020-01-01T00:00:00.000+0000'
                                         analysisPipelineName='ONB01',
                                         analysisType='INHERITANCE'): #add for testing [:x], where x is numer of iterations
         if not analysis['classificationTreeName']:  # Skip analysis
