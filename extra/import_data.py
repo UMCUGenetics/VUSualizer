@@ -8,9 +8,10 @@ import logging
 import logging.config
 import yaml
 import config
+import dateutil.parser
 from requests.exceptions import HTTPError
 from alissa_interpret_client.alissa_interpret import AlissaInterpret
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Create Alissa connection based on config.py (fill details there)
 client = AlissaInterpret(
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 logger.info("File upload script 'import_data.py' started")
 
 # start_time of script functions
-start_time = datetime.utcnow().isoformat()
+start_time = datetime.now(timezone.utc).isoformat()
 
 
 def main():
@@ -46,8 +47,9 @@ def main():
         lastUpdatedOn_mongoDB = value
     
     # retrieving data from Alissa
+    analysis = None
     for analysis in client.get_analyses(status='COMPLETED', 
-                                        lastUpdatedAfter=lastUpdatedOn_mongoDB.strftime('%Y-%m-%dT%H:%M:%S.%f+0000'), # format is '2020-01-01T00:00:00.000+0000'
+                                        lastUpdatedAfter=lastUpdatedOn_mongoDB, # format is '2020-01-01T00:00:00.000+0000'
                                         analysisPipelineName='ONB01',
                                         analysisType='INHERITANCE'): #add for testing [:x], where x is numer of iterations
         if not analysis['classificationTreeName']:  # Skip analysis
@@ -78,7 +80,11 @@ def main():
                 continue
             else:
                 upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient_dn_no, VUS_response)
-    #after uploading all analyses to MongoDB, replace time of last upload with starttime of script (before calling Alissa)
+    # if latest date does not retrieve any analyses from Alissa, quit program and try later
+    if analysis is None:
+        logger.info('no new analysis in Alissa since last upload to VUSualizer')
+        sys.exit(0)
+    # after uploading all analyses to MongoDB, replace time of last upload with starttime of script (before calling Alissa)
     db.replace_one({"version" : 1}, {"lastUpdatedOn" : start_time, "version" : 1}, True)
 
 
@@ -147,6 +153,6 @@ def upload_to_mongodb(ONB01_analysis, accession_number, analyis_sources, patient
 
 if __name__ == '__main__':
     main()
-    end_time = datetime.utcnow().isoformat()
-    diff = (datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S.%f") - datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%f"))
+    end_time = datetime.now(timezone.utc).isoformat()
+    diff = (dateutil.parser.isoparse(start_time) - dateutil.parser.isoparse(end_time))
     print("## \t\tFinished in %.2f minutes" % (diff.total_seconds()/60))

@@ -20,4 +20,5 @@ openpyxl==3.0.4
 PyYAML==5.4.1
 requests==2.26.0
 requests-oauthlib==1.3.0
+python-dateutil==2.8.2
 git+https://github.com/UMCUGenetics/alissa_interpret_client.git@develop#egg=alissa_interpret_client
