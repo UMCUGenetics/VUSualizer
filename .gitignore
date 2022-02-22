@@ -7,3 +7,4 @@ extra/verwerkt/*
 extra/output.log
 .DS_Store
 extra/.DS_Store
+src/__init__.pyc
