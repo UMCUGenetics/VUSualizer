@@ -27,8 +27,7 @@ def import_from_alissa(alissa_client, start_time, logger):
         db.replace_one({"version" : 1}, {"lastUpdatedOn" : '2018-01-01T00:00:00.000+0000', "version" : 1}, True)
         last_updated_on_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
     
-    for key, value in last_updated_on_mongoDB.items():
-        last_updated_on_mongoDB = value
+    last_updated_on_mongoDB = last_updated_on_mongoDB['lastUpdatedOn']
     
     # retrieving data from Alissa
     analysis = None
