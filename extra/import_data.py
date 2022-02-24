@@ -62,7 +62,6 @@ def import_from_alissa(alissa_client, start_time, logger):
     # if latest date does not retrieve any analyses from Alissa, quit program and try later
     if analysis is None:
         logger.info('no new analysis in Alissa since last upload to VUSualizer')
-        sys.exit(0)
     # after uploading all analyses to MongoDB, replace time of last upload with starttime of script (before calling Alissa)
     db.replace_one({"version" : 1}, {"lastUpdatedOn" : start_time, "version" : 1}, True)
 
