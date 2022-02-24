@@ -75,8 +75,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
     last_updated_on_mongoDB = db.find_one({"dn_no" : patient_dn_no}, {"lastUpdatedOn":1, "_id":0})
     if last_updated_on_mongoDB:
         logger.info('dn_no: %s already present' % patient_dn_no)
-        for key, value in last_updated_on_mongoDB.items():
-            last_updated_on_mongoDB = value
+        last_updated_on_mongoDB = last_updated_on_mongoDB['lastUpdatedOn']
         last_updated_on_Alissa = inheritance_analysis['lastUpdatedOn']
         if last_updated_on_Alissa == last_updated_on_mongoDB:
             logger.info('%s already in database, lastUpdatedOn Alissa is the same' % patient_dn_no) 
@@ -86,10 +85,6 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
         elif last_updated_on_Alissa < last_updated_on_mongoDB:
             logger.info('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
-            sys.exit('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
-        else:
-            logger.info('unknown error lastUpdatedOn for patient %s, this should not happen' % patient_dn_no)
-            sys.exit('unknown error lastUpdatedOn for patient %s, this should not happen' % patient_dn_no)
 
     # get all relevant info from one patient into one dictionary.
     patient = {}
