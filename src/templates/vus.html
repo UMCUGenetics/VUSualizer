@@ -4,11 +4,16 @@
 <!-- field id, url, visual name-->
 {% set external_links = [
 ('gene_(ensemblgene)', 'http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?g=', 'Ensembl'),
-('omim(r)_refs', 'https://www.omim.org/entry/', 'OMIM®'),
-('omim(r)_morbid_refs', 'https://omim.org/entry/', 'OMIM®'),
-('dbsnp', 'https://www.ncbi.nlm.nih.gov/snp/', 'dbSNP'),
+('omimRefs', 'https://www.omim.org/entry/', 'OMIM®'),
+('omimMorbidRefs', 'https://omim.org/entry/', 'OMIM®'),
+('dbSNP', 'https://www.ncbi.nlm.nih.gov/snp/', 'dbSNP'),
 ('transcript', 'https://www.ncbi.nlm.nih.gov/nuccore/', 'GenBank'),
-('gene', 'https://www.genecards.org/cgi-bin/carddisp.pl?gene=', 'GeneCard')
+('gene', 'https://www.genecards.org/cgi-bin/carddisp.pl?gene=', 'GeneCard'),
+('HGVS genomic-level nomenclature (fullGNomen)', 'https://gnomad.broadinstitute.org/variant/', 'gnomAD')
+] -%}
+{% set link_list = [
+'gene_(ensemblgene)', 'omimRefs', 'omimMorbidRefs', 'dbSNP', 'transcript', 'gene', 
+'HGVS genomic-level nomenclature (fullGNomen)'
 ] -%}
 
 {% block content %}
@@ -34,20 +39,11 @@
                             {% for k in variant %}
                             {% set v = variant[k] %}
                             <tr>
-                                {% if k in ["id", "annotation_sources", "labels"] %}
+                                {% if k in ["id", "annotation_sources", "labels", "databaseReferences"] %}
                                 <!-- do nothing -->
                                 {% else %}
                                 <td>{{ k.replace("_", " ").replace("\uff0e", ".") }}</td>
                                 <td><a href="{{ url_for('all') }}?{{ k }}={{ v }}">{{ v }}</a>
-                                    {% for id, url, name in external_links %}
-                                    {% if k == id %}
-                                    <!-- if key name equal to id in external_links -->
-                                    <a href="{{ url|e }}{{ v }}" target="_blank">
-                                        <button type="button" class="btn btn-primary btn-sm float-right">View
-                                            on {{ name }}</button>
-                                    </a>
-                                    {% endif %}
-                                    {% endfor %}
                                 </td>
                                 {% endif %}
                             </tr>
@@ -58,6 +54,62 @@
             </div>
         </div>
         <div class="col-xl-5 col-lg-6">
+            <!-- databaseReferences -->
+            <div class="row">
+                <div class="col">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">databaseReferences</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped table-bordered table-sm">
+                                <tbody>
+                                    {% for k in variant %}
+                                    {% set var = variant[k] %}
+                                    <tr>
+                                        {% if k in ["databaseReferences", "platformDatasets"] %}
+                                        {% for k, v in var.items() %}
+                                        {% if v != "" and k in link_list %}
+                                        <td>{{ k }}</td>
+
+                                        <td><a href="{{ url_for('all') }}?{{ k }}={{ v }}">{{ v }}</a>
+                                            {% for id, url, name in external_links %}
+                                            {% if k == id and v != "" %}
+                                            <!-- if key name equal to id in external_links -->
+                                            <a href="{{ url|e }}{{ v }}" target="_blank">
+                                                <button type="button" class="btn btn-primary btn-sm float-right">View
+                                                    on {{ name }}</button>
+                                            </a>
+                                            {% endif %}
+                                            {% endfor %}
+                                            {% endif %}
+                                        </tr>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </td>
+                                    <tr>
+                                        {% if k in ["gene", "transcript"] and var != "" %}
+                                        <td>{{ k }}</td>
+                                        <td><a href="{{ url_for('all') }}?{{ k }}={{ var }}">{{ var }}</a>
+                                            {% for id, url, name in external_links %}
+                                            {% if k == id and var != "" %}
+                                            <!-- if key name equal to id in external_links -->
+                                            <a href="{{ url|e }}{{ var }}" target="_blank">
+                                                <button type="button" class="btn btn-primary btn-sm float-right">View
+                                                    on {{ name }}</button>
+                                            </a>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tr>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- annotation sources -->
             <div class="row">
                 <div class="col">
