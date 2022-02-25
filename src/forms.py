@@ -17,12 +17,12 @@ class RegisterForm(FlaskForm):
     email = StringField('email', [
         InputRequired(),
         Email(message='Invalid email'),
-        Length(max=30)
+        Length(max=60)
     ])
     password = PasswordField('password', [
         InputRequired(),
         EqualTo('confirm', message='Passwords must match'),
-        Length(min=5, max=30, message='Your password is either too short or too long.')
+        Length(min=5, max=60, message='Your password is either too short or too long.')
     ])
     confirm = PasswordField('Repeat Password', [
         InputRequired()
@@ -34,7 +34,7 @@ class LoginForm(FlaskForm):
     email = StringField('email', [
         InputRequired(),
         Email(message='Invalid email'),
-        Length(max=30, message='Your email is too long')
+        Length(max=60, message='Your email is too long')
     ])
     password = PasswordField('password', [
         InputRequired(),
