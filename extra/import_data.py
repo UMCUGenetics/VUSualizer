@@ -1,197 +1,144 @@
 #!/usr/bin/env python3
 
-"""
-Usage: Import Alissa export in the form of .xsls into a MongoBD database.
-       Make sure the data is in a sub folder called 'input'.
-Python version: 3.7.1
-
-Input .xlsx format
-[Variant List] - spans 1A - 1E
-[General Metadata] -
-    - header spans 2A - 8B
-    - value spans 2C - 8E
-[Annotation Sources]
-    - header spans 9A - 9B
-    - subheader spans 9C - 22C
-    - value spans 9D - 22H
-[Empty line]
-[Data Table of unknown length with first row as header]
-"""
-
 import os
-import io
 import time
-import pymongo
-import warnings
-import progressbar
-import argparse
 import sys
+import pymongo
 import logging
 import logging.config
 import yaml
-from openpyxl import load_workbook
-
-# configuration for the logging file. This file logs the import of excel files into MongoDB and errors
-with open(os.path.dirname(__file__) + "/logging_config.yml", 'r') as configfile:
-    logging.config.dictConfig(yaml.safe_load(configfile))
-
-logger = logging.getLogger(__name__)
-logger.debug("File upload script 'import_data.py' started")
+import config
+import dateutil.parser
+from requests.exceptions import HTTPError
+from alissa_interpret_client.alissa_interpret import AlissaInterpret
+from datetime import datetime, timezone
 
 
-def argparser():
-    # function to enable commandline help functions. Makes use of the argparse installation.
-    # also makes sure that required parameters are used, with basic file extension checks
-
-    # Override of the error function in ArgumentParser from argparse
-    # To display the original error message + help page in the terminal, when the wrong or no arguments are given
-    class DefaultHelpParser(argparse.ArgumentParser):
-        def error(self, message):
-            sys.stderr.write('\nerror: %s\n' % message)
-            self.print_help()
-            logger.debug('error: %s' % message)
-            sys.exit(1)  # exit program
-
-    # Override of adding an extra action class in Action from argparse
-    # To add an extra action that can check for file extensions and display the help page if wrong file extension
-    def CheckExt(choices):
-        class Act(argparse.Action):
-            def __call__(self, parser, namespace, fname, option_string=None):
-                for f in fname:
-                    ext = os.path.splitext(f)[1][1:]
-                    if ext not in choices:
-                        option_string = '({})'.format(option_string) if option_string else ''
-                        parser.error("file doesn't end with {}{}".format(choices, option_string))  # display error message
-                    else:
-                        setattr(namespace, self.dest, fname)
-        return Act
-
-    # required arguments and optional arguments for the terminal. A help page is automatically generated.
-    parser = DefaultHelpParser(
-        description=(
-            "VUSualizer import data:\n"
-            "Imports data from 'O:\AMG_bijlagen_WES_uitslagen' after transferring this data into\n"
-            "the Dwergeik UMCU server. An additional script will notice new files in this folder\n"
-            "and use these as a parameter for this script. This will update the local MongoDB."
-        ),
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        "-v",
-        "--version",
-        action='version',
-        version='%(prog)s 1.0')
-    # puts following arguments under 'required', rather than the default 'optional'
-    required_argument = parser.add_argument_group('required arguments')
-    # add other file-extensions if needed: for example: CheckExt({'xlsx', 'xls})
-    required_argument.add_argument(
-        "-f",
-        "--file",
-        metavar='',
-        required=True,
-        nargs='+',
-        action=CheckExt({'xlsx'}),
-        help=(".xlsx input, usage: -f /path/to/files/XXX.xlsx (or if multiple files, "
-              "seperate with space: -f /path/to/files/XXX.xlsx /path/to/files/XXX2.xlsx'"))
-
-    args = parser.parse_args()
-    return args.file
+def import_from_alissa(alissa_client, start_time, logger):
+    '''Main function, for extracting the data from the Alissa output and send to function to parse to MongoDB'''
+     # connection with MongoDB and the correct database "vus" and collection "lastUpdatedOn"
+    mongo_client = pymongo.MongoClient(config.mongodb_localhost)
+    db = mongo_client.vus.lastUpdatedOn
+    
+    # Retrieve the last time MongoDB has updated itself, to filter the latest Alissa analyses only
+    last_updated_on_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
+    #If not exist yet, use '2018-01-01T00:00:00.000+0000' and add to mongo (first time use)
+    if last_updated_on_mongoDB is None:
+        db.replace_one({"version" : 1}, {"lastUpdatedOn" : '2018-01-01T00:00:00.000+0000', "version" : 1}, True)
+        last_updated_on_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
+    
+    last_updated_on_mongoDB = last_updated_on_mongoDB['lastUpdatedOn']
+    
+    # retrieving data from Alissa
+    analysis = None
+    for analysis in alissa_client.get_analyses(status='COMPLETED', 
+                                        lastUpdatedAfter=last_updated_on_mongoDB, # format is '2020-01-01T00:00:00.000+0000'
+                                        analysisPipelineName='ONB01',
+                                        analysisType='INHERITANCE'): #add for testing [:x], where x is numer of iterations
+        if analysis['classificationTreeName']:
+            # retrieve basic info from Alissa about the analysis
+            patient_dn_no = alissa_client.get_report(analysis['id'])[0]['reportName'].split("_")[0]
+            logger.info('start Alissa retrieval of: %s' % patient_dn_no)
+            inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
+            accession_number = alissa_client.get_patient(analysis['patientId'])['accessionNumber']
+            export_id = alissa_client.post_inheritance_analyses_variants_export(analysis['id'], marked_review=True, marked_include_report=False)['exportId']
+            analyis_sources = alissa_client.get_sources(analysis['id'])
+            
+            # retrieve the VUS/GUS info based on the analysis ID
+            vus_export = None
+            while vus_export is None:
+                try:
+                    time.sleep(5)  # 5 sec delay to request exported report.
+                    vus_export = alissa_client.get_inheritance_analyses_variants_export(analysis['id'], export_id)
+                except HTTPError as exception:
+                    pass
+            logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
+            # sometimes the there are no VUS marked or found within an analysis, then no info needs to be uploaded
+            if vus_export == []:
+                logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
+            else:
+                upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger)
+    # if latest date does not retrieve any analyses from Alissa, quit program and try later
+    if analysis is None:
+        logger.info('no new analysis in Alissa since last upload to VUSualizer')
+    # after uploading all analyses to MongoDB, replace time of last upload with starttime of script (before calling Alissa)
+    db.replace_one({"version" : 1}, {"lastUpdatedOn" : start_time, "version" : 1}, True)
 
 
-def main():
-    '''Main function, for extracting the data from the excelformat and parse to the MongoDB'''
-    # connection with MongoDB and the correct collection "vus"
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
-    db = client.vus.variant
-    files = argparser()  # get the files from the -f parameter
+def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger):
+    '''Function, for parsing data to the MongoDB'''
+    # connection with MongoDB and the correct database "vus" and collection "variant"
+    mongo_client = pymongo.MongoClient(config.mongodb_localhost)
+    db = mongo_client.vus.variant
+    
+    # if DNnr already in mongoDB, check if updated an replace if neccesary
+    last_updated_on_mongoDB = db.find_one({"dn_no" : patient_dn_no}, {"lastUpdatedOn":1, "_id":0})
+    if last_updated_on_mongoDB:
+        logger.info('dn_no: %s already present' % patient_dn_no)
+        last_updated_on_mongoDB = last_updated_on_mongoDB['lastUpdatedOn']
+        last_updated_on_Alissa = inheritance_analysis['lastUpdatedOn']
+        if last_updated_on_Alissa == last_updated_on_mongoDB:
+            logger.info('%s already in database, lastUpdatedOn Alissa is the same' % patient_dn_no) 
+            return
+        elif last_updated_on_Alissa > last_updated_on_mongoDB:
+            db.delete_many({"dn_no": patient_dn_no})
+            logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
+        elif last_updated_on_Alissa < last_updated_on_mongoDB:
+            logger.info('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
 
-    # quiet the warning when loading the first xlsx
-    warnings.simplefilter("ignore")
-    start_time = time.time()
+    # get all relevant info from one patient into one dictionary.
+    patient = {}
+    patient["dn_no"] = patient_dn_no
+    logger.info('start uploading to mongodb: %s' % patient_dn_no)
+    patient["patient_accession_no"] = accession_number
+    patient.update(inheritance_analysis)
+    patient["analysis"] = patient.pop("reference")
+    patient["platform_dataset"] = analyis_sources["platformDataSet"]["info"]
 
-    # TODO: remove the progressbar dependency. Not needed for functionality and logging takes care of keeping track of files
-    with progressbar.ProgressBar(max_value=len(files)) as bar:
-        i = 0
-        for file in bar(files):
-            logger.debug('start uploading: %s' % file)
-            i += 1
-            # To prevent opening a cached version of the file
-            if file.lower().endswith(".xlsx") and not file.lower().startswith("~"):
-                patient = {}
-                patient["dn_no"] = os.path.splitext(os.path.basename(file))[0]
-                # If DNxxx.xlsx file is already in MongoDB, then first remove the old one.
-                if db.count({"dn_no": patient["dn_no"]}) > 0:
-                    logger.debug('dn_no: %s already present, start reuploading' % patient["dn_no"])
-                    db.delete_many({"dn_no": patient["dn_no"]})
-                    logger.debug('removed: %s from database' % patient["dn_no"])
-                annotation = {}
-                data_headers = []
-                section = ""
-                with open(file, "rb") as f:
-                    in_mem_file = io.BytesIO(f.read())
-                wb = load_workbook(in_mem_file)
-
-                sheet = wb.active
-                for row in sheet:
-                    # First assess the section we're parsing
-                    if section == "":
-                        # print("### Starting with parsing the Metadata section")
-                        section = "metadata"
-                        continue  # skip first row
-                    elif row[0].value == "Annotation Sources":
-                        # print("### Detected switch to Annotation Sources section")
-                        section = "annotation"
-                    elif section == "annotation" and row[2].value is None:
-                        # print("### Detected switch to Data Table section")
-                        patient["annotation_sources"] = annotation  # add previous section to total patient info
-                        section = "data_table"
-                        continue  # skip empty row
-
-                    # Parse data based on current section
-                    if section == "metadata":
-                        patient[row[0].value.replace(".", "").replace(" ", "_").lower()] = row[2].value
-                        pass
-                    elif section == "annotation":
-                        annotation[row[2].value] = row[3].value
-                        pass
-                    elif section == "data_table":
-                        if len(data_headers) == 0:  # get headers
-                            data_headers = [col.value for col in row]
-                        else:  # values
-                            variant = {}
-                            for i in range(len(data_headers)):  # iterate headers
-                                key = data_headers[i].replace(" ", "_").replace(".", "\uff0e").lower()
-
-                                # skip everything that starts with father or mother etc since the key
-                                # name contains patient number of parents
-                                # TODO: implement this properly
-                                if key.startswith("father") or key.startswith("mother") \
-                                        or key.startswith("brother") or key.startswith("sister"):
-                                    continue
-
-                                # only use the name inbetween brackets to store, if last char is a right bracket
-                                if key.endswith(")"):
-                                    index_bracket_left = key.rfind("(")
-                                    if index_bracket_left >= 0:
-                                        key = key[index_bracket_left + 1:-1]
-
-                                val = row[i].value
-                                if key == "labels":
-                                    labels = val.split(";")
-                                    val = {}
-                                    for label in labels:
-                                        labelInfo = label.split(",")
-                                        val[labelInfo[0].replace(" ", "_").replace(".", "\uff0e").lower()] = labelInfo[1]
-                                if val is not None and val != "":
-                                    variant[key] = val
-
-                            # add variant info along with metadata to collection
-                            variant.update(patient)
-                            db.insert_one(variant)
-            bar.update(bar.value)
-        logger.debug('finished uploading: %s' % file)
-        # Moves file to other folder, to make uploading a new file (with same filename) possible on the UMCU server (for replacing)
-        os.replace(file, os.path.dirname(__file__) + "/verwerkt/" + os.path.basename(file))
-    print("## \t\tFinished in {0:.2f} minutes".format((time.time() - start_time) / 60))
+    # changes the format of the annotation sources from Alissa, to fit in MongoDB and resemble the old O-schijf format
+    externalSources_dict = {}
+    variants = vus_export
+    for source in analyis_sources['annotationSources']:
+        source_name = ""
+        source_value = ""
+        for key, value in source.items():
+            if key == 'name':
+                source_name = value
+            elif key == 'description':
+                source_value = value
+        if source_name and source_value:
+            externalSources_dict[source_name] = source_value
+        else:
+            logger.info("error, externalsources has changed format in Alissa")
+    patient["annotation_sources"] = externalSources_dict  # add previous section to total patient info
+    
+    # add VUS info to patientdata
+    for variant in variants:
+        variant.update(patient)
+        db.insert_one(variant)
+    logger.info('finished uploading to mongodb: %s' % patient_dn_no)
 
 
-main()
+if __name__ == '__main__':
+    # start_time of script functions
+    start_time = datetime.now(timezone.utc).isoformat()
+    
+    # Create Alissa connection based on config.py (fill details there)
+    alissa_client = AlissaInterpret(
+        base_uri=config.alissa_base_uri, client_id=config.alissa_client_id, client_secret=config.alissa_client_secret,
+        username=config.alissa_username, password=config.alissa_password
+    )
+
+    # configuration for the logging file. This file logs the import of excel files into MongoDB and errors
+    with open(config.logging_file, 'r') as configfile:
+        logging.config.dictConfig(yaml.safe_load(configfile))
+    logger = logging.getLogger(__name__)
+    logger.info("File upload script 'import_data.py' started")
+
+    # Start importing from Alissa and exporting to MongoDB
+    import_from_alissa(alissa_client, start_time, logger)
+
+    # end_time of script and printing total processing time
+    end_time = datetime.now(timezone.utc).isoformat()
+    diff = (dateutil.parser.isoparse(start_time) - dateutil.parser.isoparse(end_time))
+    print("## \t\tFinished in %.2f minutes" % (diff.total_seconds()/60))
