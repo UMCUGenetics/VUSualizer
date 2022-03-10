@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import time
 import sys
 import pymongo
@@ -97,7 +98,6 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
 
     # changes the format of the annotation sources from Alissa, to fit in MongoDB and resemble the old O-schijf format
     externalSources_dict = {}
-    variants = vus_export
     for source in analyis_sources['annotationSources']:
         source_name = ""
         source_value = ""
@@ -112,8 +112,33 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             logger.info("error, externalsources has changed format in Alissa")
     patient["annotation_sources"] = externalSources_dict  # add previous section to total patient info
     
-    # add VUS info to patientdata
-    for variant in variants:
+    # extract information from the VUS/variant data and add to "patient"
+    for variant in vus_export:
+        # format for gnomad Links. 4 availble in Alissa (snp, insertion, deletion and substitution)
+        gnomad_data = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)'] # NC_000001.10:g.123456789T>A
+        if gnomad_data: # NC_000001.10:g.123456789T>A
+            print("hoi")
+            gnomad_data = re.split(':[a-z].', gnomad_data)[1] # 123456789T>A
+            if variant["type"] == "snp":
+                gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c] # 123456789T>A
+                gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-',("-".join(gnomad_data))) # 1-123456789-T-A
+                variant['GnomadVariant'] = {'Single nucleotide variant' : gnomad_data}
+            elif variant["type"] == "insertion":
+                gnomad_data = variant["chromosome"] + "-" + gnomad_data
+                variant['GnomadVariant'] = {'Insertion' : gnomad_data}
+                #TODO: make link format correctly for this genomic variation
+            elif variant["type"] == "deletion":
+                gnomad_data = variant["chromosome"] + "-" + gnomad_data
+                variant['GnomadVariant'] = {'Deletion' : gnomad_data}
+                #TODO: make link format correctly for this genomic variation
+            elif variant["type"] == "substitution":
+                gnomad_data = variant["chromosome"] + "-" + gnomad_data
+                variant['GnomadVariant'] = {'Substitution' : gnomad_data}
+                #TODO: make link format correctly for this genomic variation
+        else: # on rare occasions, fullGNomen is empty
+            variant['GnomadVariant'] = {variant["type"] : ''}
+            
+        # add VUS/variant info to patientdata
         variant.update(patient)
         db.insert_one(variant)
     logger.info('finished uploading to mongodb: %s' % patient_dn_no)
