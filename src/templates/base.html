@@ -55,6 +55,7 @@
             bjQueryUI: true,
             dom: '<"row ml-2 mb-3"B>lfrtip',
             lengthMenu: [[1, 10, 25, 50, 250, -1], [1, 10, 25, 50, 250, "All"]],
+            pageLength: 25, // = default lengthMenu at opening page
             buttons: ['colvis', 'excel', 'print', 'copy'],
             scrollY: '50vh',
             scrollCollapse: true,
@@ -83,16 +84,19 @@
 
         $('#variant').dataTable({
             bServerSide: false,
+            scrollX: true,
             order: [[1, "asc"]],
         });
 
         $('#patient').dataTable({
             bServerSide: false,
+            scrollX: true,
             order: [[1, "asc"]],
         });
 
         $('#gene').dataTable({
             bServerSide: false,
+            scrollX: true,
             order: [[1, "asc"]],
         });
     </script>

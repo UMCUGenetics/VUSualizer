@@ -50,8 +50,19 @@
                                 <!-- do nothing -->
                                 {% else %}
                                 <td>{{ k.replace("_", " ").replace("\uff0e", ".") }}</td>
-                                <td><a href="{{ url_for('all') }}?{{ k }}={{ v }}">{{ v }}</a>
-                                </td>
+
+                                {% if k == "dn_no" %}
+                                <td><a href={{ url_for('patient', id=v) }}>{{ v }}</a></td>
+                                {% elif k == "gene" %}
+                                <td><a href={{ url_for('gene', id=v) }}>{{ v }}</a></td>
+                                {% elif k == "fullgnomen" %}
+                                <td><a href={{ url_for('variant', id=v) }}>{{ v }}</a></td>
+                                {% else %}
+                                <td>{{ v }}</td>
+                                {% endif %}
+
+
+                                <!-- <td><a href="{{ url_for('all') }}?{{ k }}={{ v }}">{{ v }}</a></td> -->
                                 {% endif %}
                             </tr>
                             {% endfor %}
@@ -75,12 +86,10 @@
                             <div class="col">
                                 <table class="table table-striped table-bordered table-sm">
                                     {% for k, v in variant["inheritanceAlleles"][i].items() %}
-                                    {% if v != "" %}
                                     <tr>
                                         <td>{{ k.replace("_", " ").replace("\uff0e", ".") }}</td>
                                         <td>{{ v }}</td>
                                     </tr>
-                                    {% endif %}
                                     {% endfor %}
                                     {% for k, v in variant["familyMembers"][i].items() %}
                                     {% if v != "" and k == "affected" %}
