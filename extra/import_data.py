@@ -38,12 +38,12 @@ def import_from_alissa(alissa_client, start_time, logger):
                                         analysisType='INHERITANCE'): #add for testing [:x], where x is numer of iterations
         if analysis['classificationTreeName']:
             # retrieve basic info from Alissa about the analysis
-            patient_dn_no = alissa_client.get_report(analysis['id'])[0]['reportName'].split("_")[0]
+            patient_dn_no = alissa_client.get_analysis_report(analysis['id'])[0]['reportName'].split("_")[0]
             logger.info('start Alissa retrieval of: %s' % patient_dn_no)
             inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
             accession_number = alissa_client.get_patient(analysis['patientId'])['accessionNumber']
             export_id = alissa_client.post_inheritance_analyses_variants_export(analysis['id'], marked_review=True, marked_include_report=False)['exportId']
-            analyis_sources = alissa_client.get_sources(analysis['id'])
+            analyis_sources = alissa_client.get_analysis_sources(analysis['id'])
             
             # retrieve the VUS/GUS info based on the analysis ID
             vus_export = None
