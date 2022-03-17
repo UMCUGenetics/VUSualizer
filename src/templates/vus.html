@@ -60,9 +60,6 @@
                                 {% else %}
                                 <td>{{ v }}</td>
                                 {% endif %}
-
-
-                                <!-- <td><a href="{{ url_for('all') }}?{{ k }}={{ v }}">{{ v }}</a></td> -->
                                 {% endif %}
                             </tr>
                             {% endfor %}
@@ -156,7 +153,6 @@
                                         {% if v != "" and k in link_list %}
                                         <td>{{ k }}</td>
                                         <td>{{ v }}
-                                        <!-- <td><a href="{{ url_for('all') }}?{{ k }}={{ v }}">{{ v }}</a> -->
                                             {% for id, url, name in external_links %}
                                             {% if k == id and v != "" %}
                                             <!-- if key name equal to id in external_links -->
@@ -175,7 +171,6 @@
                                         {% if k in ["gene", "transcript"] and var != "" %}
                                         <td>{{ k }}</td>
                                         <td>{{ var }}
-                                        <!-- <td><a href="{{ url_for('all') }}?{{ k }}={{ var }}">{{ var }}</a> -->
                                             {% for id, url, name in external_links %}
                                             {% if k == id and var != "" %}
                                             <!-- if key name equal to id in external_links -->

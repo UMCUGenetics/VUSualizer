@@ -17,25 +17,25 @@ from datetime import datetime, timezone
 
 def import_from_alissa(alissa_client, start_time, logger):
     '''Main function, for extracting the data from the Alissa output and send to function to parse to MongoDB'''
-     # connection with MongoDB and the correct database "vus" and collection "lastUpdatedOn"
+    # connection with MongoDB and the correct database "vus" and collection "lastUpdatedOn"
     mongo_client = pymongo.MongoClient(config.mongodb_localhost)
     db = mongo_client.vus.lastUpdatedOn
-    
+
     # Retrieve the last time MongoDB has updated itself, to filter the latest Alissa analyses only
-    last_updated_on_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
-    #If not exist yet, use '2018-01-01T00:00:00.000+0000' and add to mongo (first time use)
+    last_updated_on_mongoDB = db.find_one({"version": 1}, {"lastUpdatedOn": 1, "_id": 0})
+    # If not exist yet, use '2018-01-01T00:00:00.000+0000' and add to mongo (first time use)
     if last_updated_on_mongoDB is None:
-        db.replace_one({"version" : 1}, {"lastUpdatedOn" : '2018-01-01T00:00:00.000+0000', "version" : 1}, True)
-        last_updated_on_mongoDB = db.find_one({"version" : 1}, {"lastUpdatedOn":1, "_id":0})
-    
+        db.replace_one({"version": 1}, {"lastUpdatedOn": '2018-01-01T00:00:00.000+0000', "version": 1}, True)
+        last_updated_on_mongoDB = db.find_one({"version": 1}, {"lastUpdatedOn": 1, "_id": 0})
+
     last_updated_on_mongoDB = last_updated_on_mongoDB['lastUpdatedOn']
-    
+
     # retrieving data from Alissa
     analysis = None
-    for analysis in alissa_client.get_analyses(status='COMPLETED', 
-                                        lastUpdatedAfter=last_updated_on_mongoDB, # format is '2020-01-01T00:00:00.000+0000'
-                                        analysisPipelineName='ONB01',
-                                        analysisType='INHERITANCE'): #add for testing [:x], where x is numer of iterations
+    for analysis in alissa_client.get_analyses(status='COMPLETED',
+                                               lastUpdatedAfter=last_updated_on_mongoDB,  # format is '2020-01-01T00:00:00.000+0000'
+                                               analysisPipelineName='ONB01',
+                                               analysisType='INHERITANCE'):  # add for testing [:x], where x is numer of iterations
         if analysis['classificationTreeName']:
             # retrieve basic info from Alissa about the analysis
             patient_dn_no = alissa_client.get_analysis_report(analysis['id'])[0]['reportName'].split("_")[0]
@@ -44,7 +44,7 @@ def import_from_alissa(alissa_client, start_time, logger):
             accession_number = alissa_client.get_patient(analysis['patientId'])['accessionNumber']
             export_id = alissa_client.post_inheritance_analyses_variants_export(analysis['id'], marked_review=True, marked_include_report=False)['exportId']
             analyis_sources = alissa_client.get_analysis_sources(analysis['id'])
-            
+
             # retrieve the VUS/GUS info based on the analysis ID
             vus_export = None
             while vus_export is None:
@@ -63,7 +63,7 @@ def import_from_alissa(alissa_client, start_time, logger):
     if analysis is None:
         logger.info('no new analysis in Alissa since last upload to VUSualizer')
     # after uploading all analyses to MongoDB, replace time of last upload with starttime of script (before calling Alissa)
-    db.replace_one({"version" : 1}, {"lastUpdatedOn" : start_time, "version" : 1}, True)
+    db.replace_one({"version": 1}, {"lastUpdatedOn": start_time, "version": 1}, True)
 
 
 def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger):
@@ -71,15 +71,15 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
     # connection with MongoDB and the correct database "vus" and collection "variant"
     mongo_client = pymongo.MongoClient(config.mongodb_localhost)
     db = mongo_client.vus.variant
-    
+
     # if DNnr already in mongoDB, check if updated an replace if neccesary
-    last_updated_on_mongoDB = db.find_one({"dn_no" : patient_dn_no}, {"lastUpdatedOn":1, "_id":0})
+    last_updated_on_mongoDB = db.find_one({"dn_no": patient_dn_no}, {"lastUpdatedOn": 1, "_id": 0})
     if last_updated_on_mongoDB:
         logger.info('dn_no: %s already present' % patient_dn_no)
         last_updated_on_mongoDB = last_updated_on_mongoDB['lastUpdatedOn']
         last_updated_on_Alissa = inheritance_analysis['lastUpdatedOn']
         if last_updated_on_Alissa == last_updated_on_mongoDB:
-            logger.info('%s already in database, lastUpdatedOn Alissa is the same' % patient_dn_no) 
+            logger.info('%s already in database, lastUpdatedOn Alissa is the same' % patient_dn_no)
             return
         elif last_updated_on_Alissa > last_updated_on_mongoDB:
             db.delete_many({"dn_no": patient_dn_no})
@@ -111,33 +111,33 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
         else:
             logger.info("error, externalsources has changed format in Alissa")
     patient["annotation_sources"] = externalSources_dict  # add previous section to total patient info
-    
+
     # extract information from the VUS/variant data and add to "patient"
     for variant in vus_export:
         # format for gnomad Links. 4 availble in Alissa (snp, insertion, deletion and substitution)
-        fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)'] # NC_000001.10:g.123456789T>A
+        fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)']  # NC_000001.10:g.123456789T>A
         variant['fullgnomen'] = fullgnomen
-        if fullgnomen: # NC_000001.10:g.123456789T>A
-            gnomad_data = re.split(':[a-z].', fullgnomen)[1] # 123456789T>A
+        if fullgnomen:  # NC_000001.10:g.123456789T>A
+            gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
             if variant["type"] == "snp":
-                gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c] # 123456789T>A
-                gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-',("-".join(gnomad_data))) # 1-123456789-T-A
-                variant['GnomadVariant'] = {'Single nucleotide variant' : gnomad_data}
+                gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
+                gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-', ("-".join(gnomad_data)))  # 1-123456789-T-A
+                variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
             elif variant["type"] == "insertion":
                 gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                variant['GnomadVariant'] = {'Insertion' : gnomad_data}
-                #TODO: make link format correctly for this genomic variation
+                variant['GnomadVariant'] = {'Insertion': gnomad_data}
+                # TODO: make link format correctly for this genomic variation
             elif variant["type"] == "deletion":
                 gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                variant['GnomadVariant'] = {'Deletion' : gnomad_data}
-                #TODO: make link format correctly for this genomic variation
+                variant['GnomadVariant'] = {'Deletion': gnomad_data}
+                # TODO: make link format correctly for this genomic variation
             elif variant["type"] == "substitution":
                 gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                variant['GnomadVariant'] = {'Substitution' : gnomad_data}
-                #TODO: make link format correctly for this genomic variation
-        else: # on rare occasions, fullGNomen is empty
-            variant['GnomadVariant'] = {variant["type"] : ''}
-            
+                variant['GnomadVariant'] = {'Substitution': gnomad_data}
+                # TODO: make link format correctly for this genomic variation
+        else:  # on rare occasions, fullGNomen is empty
+            variant['GnomadVariant'] = {variant["type"]: ''}
+
         # add VUS/variant info to patientdata
         variant.update(patient)
         db.insert_one(variant)
@@ -147,7 +147,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
 if __name__ == '__main__':
     # start_time of script functions
     start_time = datetime.now(timezone.utc).isoformat()
-    
+
     # Create Alissa connection based on config.py (fill details there)
     alissa_client = AlissaInterpret(
         base_uri=config.alissa_base_uri, client_id=config.alissa_client_id, client_secret=config.alissa_client_secret,

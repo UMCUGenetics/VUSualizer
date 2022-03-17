@@ -12,8 +12,8 @@ variant_col = mongo.db.variant
 user_col = mongo.db.user
 
 columns = ['#', '_id', 'total']
-default_fields = ["VUS", "dn_no", "gene", "fullgnomen", "Position", "inheritanceMode", "ref", "genotype Patient", "genotype Mother", 
-                  "genotype Father", "inheritedFrom", "cdna", "protein", "effect", "transcript", "GnomAD"]
+default_fields = ["VUS", "dn_no", "gene", "fullgnomen", "Position", "inheritanceMode", "ref", "genotype Patient",
+                  "genotype Mother", "genotype Father", "inheritedFrom", "cdna", "protein", "effect", "transcript", "GnomAD"]
 default_order = {"dn_no": 1, "gene": 1}
 variants = []
 
@@ -46,7 +46,6 @@ def group_and_count_on_field(field):
         {'$count': "tot"}
     ])
     return list(agg)[0]['tot']
-    # return 0
 
 
 def render_individual_page(group_by, id, template):
@@ -116,10 +115,7 @@ def patients():
 @login_required
 def variants():
     fields = columns
-    #if "protein" not in fields:
-    #    fields.append("protein")
     return render_template('variants.html', fields=fields)
-    #return render_template('variants.html')
 
 
 @app.route('/all')

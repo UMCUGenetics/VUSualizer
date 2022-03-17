@@ -89,13 +89,6 @@ class DataTablesServer:
                         uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
                     elif self.group_by == "gene":
                         uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                #elif col == "protein":
-                #    temp = []
-                #    for x in val:
-                #        # filtering like this doesn't work yet
-                #        # temp.append('<a href="/all?pnomen={0}">{0}</a>'.format(x))
-                #        temp.append(x)
-                #    uwu = ", ".join(temp)
                 elif col == "total":
                     uwu = val
                 else:
