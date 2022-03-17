@@ -115,10 +115,10 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
     # extract information from the VUS/variant data and add to "patient"
     for variant in vus_export:
         # format for gnomad Links. 4 availble in Alissa (snp, insertion, deletion and substitution)
-        gnomad_data = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)'] # NC_000001.10:g.123456789T>A
-        if gnomad_data: # NC_000001.10:g.123456789T>A
-            print("hoi")
-            gnomad_data = re.split(':[a-z].', gnomad_data)[1] # 123456789T>A
+        fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)'] # NC_000001.10:g.123456789T>A
+        variant['fullgnomen'] = fullgnomen
+        if fullgnomen: # NC_000001.10:g.123456789T>A
+            gnomad_data = re.split(':[a-z].', fullgnomen)[1] # 123456789T>A
             if variant["type"] == "snp":
                 gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c] # 123456789T>A
                 gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-',("-".join(gnomad_data))) # 1-123456789-T-A

@@ -12,7 +12,8 @@ variant_col = mongo.db.variant
 user_col = mongo.db.user
 
 columns = ['#', '_id', 'total']
-default_fields = ["dn_no", "gene", "fullgnomen", "Position", "inheritanceMode", "ref", "genotype Patient", "genotype Mother", "genotype Father", "cdna", "protein", "effect", "transcript", "GnomAD"]
+default_fields = ["VUS", "dn_no", "gene", "fullgnomen", "Position", "inheritanceMode", "ref", "genotype Patient", "genotype Mother", 
+                  "genotype Father", "inheritedFrom", "cdna", "protein", "effect", "transcript", "GnomAD"]
 default_order = {"dn_no": 1, "gene": 1}
 variants = []
 
@@ -32,10 +33,8 @@ def redirect_url():
     return request.args.get('next') or request.referrer or url_for('index')
 
 
-all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "cnomen", "pnomen", "exon", "classification",
-              "codingeffect", "zygosity", "allelic_depth_allele_1", "allelic_depth_allele_2",
-              "inheritanceMode", "inheritedFrom", "variantAssessment",
-              "omimmorbidphenotype", "omimmorbidgenemim"]
+all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "start", "stop", "exon", "protein", "classification",
+              "zygosity", "inheritanceMode", "inheritedFrom", "variantAssessment"]
 
 
 # START HELPER FUNCTIONS
@@ -117,9 +116,10 @@ def patients():
 @login_required
 def variants():
     fields = columns
-    if "protein" not in fields:
-        fields.append("protein")
+    #if "protein" not in fields:
+    #    fields.append("protein")
     return render_template('variants.html', fields=fields)
+    #return render_template('variants.html')
 
 
 @app.route('/all')

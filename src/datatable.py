@@ -37,7 +37,6 @@ class DataTablesServer:
         for row in self.result_data:
             data_row = []
             i += 1
-            # data_row["#"] = i
             data_row.append("<a href='/vus/{0}'>{1}</a>".format(row['_id'], i))
             for col in self.columns:
                 if col in row:
@@ -62,19 +61,8 @@ class DataTablesServer:
                     uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
                 elif col == "gene":
                     uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                elif col == "protein":
-                    temp = []
-                    for x in val:
-                        # filtering like this doesn't work yet
-                        # temp.append('<a href="/all?pnomen={0}">{0}</a>'.format())
-                        temp.append(x)
-                    uwu = ", ".join(temp)
                 else:
-                    # filtering like this doesn't work yet
-                    # uwu = '<a href="/all?{1}={0}">{0}</a>'.format(val, col)
-                    # uwu = '{0}'.format(val)
                     uwu = val
-                # data_row[col] = uwu
                 data_row.append(uwu)
             data_rows.append(data_row)
         output['data'] = data_rows
@@ -101,13 +89,13 @@ class DataTablesServer:
                         uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
                     elif self.group_by == "gene":
                         uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                elif col == "protein":
-                    temp = []
-                    for x in val:
-                        # filtering like this doesn't work yet
-                        # temp.append('<a href="/all?pnomen={0}">{0}</a>'.format(x))
-                        temp.append(x)
-                    uwu = ", ".join(temp)
+                #elif col == "protein":
+                #    temp = []
+                #    for x in val:
+                #        # filtering like this doesn't work yet
+                #        # temp.append('<a href="/all?pnomen={0}">{0}</a>'.format(x))
+                #        temp.append(x)
+                #    uwu = ", ".join(temp)
                 elif col == "total":
                     uwu = val
                 else:
