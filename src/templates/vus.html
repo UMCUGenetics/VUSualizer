@@ -95,14 +95,14 @@
                                     {% for k, v in variant["inheritanceAlleles"][i].items() %}
                                     <tr>
                                         <td>{{ k.replace("_", " ").replace("\uff0e", ".") }}</td>
-                                        <td>{{ v }}</td>
+                                        <td style="word-break: break-word">{{ v }}</td>
                                     </tr>
                                     {% endfor %}
                                     {% for k, v in variant["familyMembers"][i].items() %}
                                     {% if v != "" and k == "affected" %}
                                     <tr>
                                         <td>{{ k.replace("_", " ").replace("\uff0e", ".") }}</td>
-                                        <td>{{ v }}</td>
+                                        <td style="word-break: break-word">{{ v }}</td>
                                     </tr>
                                     {% endif %}
                                     {% endfor %}
