@@ -36,7 +36,7 @@ def import_from_alissa(alissa_client, start_time, logger):
                                                lastUpdatedAfter=last_updated_on_mongoDB,  # format is '2020-01-01T00:00:00.000+0000'
                                                analysisPipelineName='ONB01',
                                                analysisType='INHERITANCE'):  # add for testing [:x], where x is numer of iterations
-        if analysis['classificationTreeName']:
+        if analysis['classificationTreeName'] and alissa_client.get_analysis_report(analysis['id']):
             # retrieve basic info from Alissa about the analysis
             patient_dn_no = alissa_client.get_analysis_report(analysis['id'])[0]['reportName'].split("_")[0]
             logger.info('start Alissa retrieval of: %s' % patient_dn_no)
