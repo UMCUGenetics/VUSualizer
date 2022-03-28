@@ -68,7 +68,7 @@
                                 {% elif k == "fullgnomen" %}
                                 <td><a href={{ url_for('variant', id=v) }}>{{ v }}</a></td>
                                 {% else %}
-                                <td>{{ v }}</td>
+                                <td style="word-break: break-word">{{ v }}</td>
                                 {% endif %}
                                 {% endif %}
                             </tr>
