@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import os
 import re
 import time
-import sys
 import pymongo
 import logging
 import logging.config
