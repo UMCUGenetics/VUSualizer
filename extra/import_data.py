@@ -32,9 +32,9 @@ def import_from_alissa(alissa_client, start_time, logger):
     # retrieving data from Alissa
     analysis = None
     for analysis in alissa_client.get_analyses(status='COMPLETED',
-                                            lastUpdatedAfter=last_updated_on_mongoDB,  # format '2020-01-01T00:00:00.000+0000'
-                                            analysisPipelineName='ONB01',
-                                            analysisType='INHERITANCE'):  # for testing [:x], where x is number of iterations
+                                               lastUpdatedAfter=last_updated_on_mongoDB,  # '2020-01-01T00:00:00.000+0000'
+                                               analysisPipelineName='ONB01',
+                                               analysisType='INHERITANCE'):  # for testing [:x], x is number of iterations
         analysis_report = alissa_client.get_analysis_report(analysis['id'])
         if analysis['classificationTreeName'] and analysis_report:
             # retrieve basic info from Alissa about the analysis
