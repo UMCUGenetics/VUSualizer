@@ -58,7 +58,6 @@ def import_from_alissa(alissa_client, start_time, logger):
                     pass
                 except json.decoder.JSONDecodeError:
                     break
-
             logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
             # sometimes the there are no VUS marked or found within an analysis, then no info needs to be uploaded
             if vus_export == []:
@@ -137,12 +136,12 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
                     variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
                 elif variant["type"] in ["insertion", "deletion", "substitution"]:
                     gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                    variant['GnomadVariant'] =  {variant["type"].capitalize(): gnomad_data}
+                    variant['GnomadVariant'] = {variant["type"].capitalize(): gnomad_data}
                     # TODO: make link format correctly for "insertion", "deletion", "substitution" genomic variations
             else:  # on rare occasions, fullGNomen is empty
                 variant['GnomadVariant'] = {variant["type"]: ''}
         except KeyError:
-            logger.info('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded'  % patient_dn_no)
+            logger.info('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
             continue
         # add VUS/variant info to patientdata
         variant.update(patient)
