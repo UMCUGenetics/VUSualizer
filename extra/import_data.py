@@ -4,6 +4,7 @@ import re
 import time
 import pymongo
 import logging
+import json
 import logging.config
 import yaml
 import config
@@ -31,16 +32,20 @@ def import_from_alissa(alissa_client, start_time, logger):
     # retrieving data from Alissa
     analysis = None
     for analysis in alissa_client.get_analyses(status='COMPLETED',
-                                               lastUpdatedAfter=last_updated_on_mongoDB,  # format is '2020-01-01T00:00:00.000+0000'
-                                               analysisPipelineName='ONB01',
-                                               analysisType='INHERITANCE'):  # add for testing [:x], where x is numer of iterations
-        if analysis['classificationTreeName'] and alissa_client.get_analysis_report(analysis['id']):
+                                            lastUpdatedAfter=last_updated_on_mongoDB,  # format '2020-01-01T00:00:00.000+0000'
+                                            analysisPipelineName='ONB01',
+                                            analysisType='INHERITANCE'):  # for testing [:x], where x is number of iterations
+        analysis_report = alissa_client.get_analysis_report(analysis['id'])
+        if analysis['classificationTreeName'] and analysis_report:
             # retrieve basic info from Alissa about the analysis
-            patient_dn_no = alissa_client.get_analysis_report(analysis['id'])[0]['reportName'].split("_")[0]
-            logger.info('start Alissa retrieval of: %s' % patient_dn_no)
+            # patient_dn_no = alissa_client.get_analysis_report(analysis['id'])[0]['reportName'].split("_")[0]
+            patient_dn_no = analysis_report[0]['reportName'].split("_")[0]
+            logger.info('start Alissa retrieval of: %s with analysisID: %s' % (patient_dn_no, analysis['id']))
             inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
             accession_number = alissa_client.get_patient(analysis['patientId'])['accessionNumber']
-            export_id = alissa_client.post_inheritance_analyses_variants_export(analysis['id'], marked_review=True, marked_include_report=False)['exportId']
+            export_id = alissa_client.post_inheritance_analyses_variants_export(analysis['id'],
+                                                                                marked_review=True,
+                                                                                marked_include_report=False)['exportId']
             analyis_sources = alissa_client.get_analysis_sources(analysis['id'])
 
             # retrieve the VUS/GUS info based on the analysis ID
@@ -51,10 +56,17 @@ def import_from_alissa(alissa_client, start_time, logger):
                     vus_export = alissa_client.get_inheritance_analyses_variants_export(analysis['id'], export_id)
                 except HTTPError as exception:
                     pass
+                except json.decoder.JSONDecodeError:
+                    break
+
             logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
             # sometimes the there are no VUS marked or found within an analysis, then no info needs to be uploaded
             if vus_export == []:
                 logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
+            elif vus_export is None:
+                logger.info('Patient %s not uploaded, Alissa database temporarily not available' % patient_dn_no)
+                # TODO send (email) notification of this error, see issue #11 GitHub
+                exit(1)
             else:
                 upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger)
     # if latest date does not retrieve any analyses from Alissa, quit program and try later
@@ -84,6 +96,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
         elif last_updated_on_Alissa < last_updated_on_mongoDB:
             logger.info('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
+            # TODO send (email) notification of this error, see issue #11 GitHub
 
     # get all relevant info from one patient into one dictionary.
     patient = {}
@@ -113,29 +126,24 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
     # extract information from the VUS/variant data and add to "patient"
     for variant in vus_export:
         # format for gnomad Links. 4 availble in Alissa (snp, insertion, deletion and substitution)
-        fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)']  # NC_000001.10:g.123456789T>A
-        variant['fullgnomen'] = fullgnomen
-        if fullgnomen:  # NC_000001.10:g.123456789T>A
-            gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
-            if variant["type"] == "snp":
-                gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
-                gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-', ("-".join(gnomad_data)))  # 1-123456789-T-A
-                variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
-            elif variant["type"] == "insertion":
-                gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                variant['GnomadVariant'] = {'Insertion': gnomad_data}
-                # TODO: make link format correctly for this genomic variation
-            elif variant["type"] == "deletion":
-                gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                variant['GnomadVariant'] = {'Deletion': gnomad_data}
-                # TODO: make link format correctly for this genomic variation
-            elif variant["type"] == "substitution":
-                gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                variant['GnomadVariant'] = {'Substitution': gnomad_data}
-                # TODO: make link format correctly for this genomic variation
-        else:  # on rare occasions, fullGNomen is empty
-            variant['GnomadVariant'] = {variant["type"]: ''}
-
+        try:
+            fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)']
+            variant['fullgnomen'] = fullgnomen  # NC_000001.10:g.12345678T>A
+            if fullgnomen:  # NC_000001.10:g.12345678T>A
+                gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
+                if variant["type"] == "snp":
+                    gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
+                    gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-', ("-".join(gnomad_data)))  # 1-12345678-T-A
+                    variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
+                elif variant["type"] in ["insertion", "deletion", "substitution"]:
+                    gnomad_data = variant["chromosome"] + "-" + gnomad_data
+                    variant['GnomadVariant'] =  {variant["type"].capitalize(): gnomad_data}
+                    # TODO: make link format correctly for "insertion", "deletion", "substitution" genomic variations
+            else:  # on rare occasions, fullGNomen is empty
+                variant['GnomadVariant'] = {variant["type"]: ''}
+        except KeyError:
+            logger.info('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded'  % patient_dn_no)
+            continue
         # add VUS/variant info to patientdata
         variant.update(patient)
         db.insert_one(variant)
@@ -152,7 +160,7 @@ if __name__ == '__main__':
         username=config.alissa_username, password=config.alissa_password
     )
 
-    # configuration for the logging file. This file logs the import of excel files into MongoDB and errors
+    # configuration for the logging file.
     with open(config.logging_file, 'r') as configfile:
         logging.config.dictConfig(yaml.safe_load(configfile))
     logger = logging.getLogger(__name__)
