@@ -22,7 +22,17 @@ def login_required(f):
     '''Wrapper around the login_required() function of Flask, to also check the active status of the user'''
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_user.is_authenticated == False or check_if_user_active(current_user):
+        if current_user.is_authenticated is False or check_if_user_active(current_user):
+            return redirect(url_for('account'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def diaggen_role_required(f):
+    '''Wrapper around the login_required() function of Flask, to also check the active status of the user'''
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.role != "ROLE_ADMIN" and current_user.role != "ROLE_DIAGGEN":
             return redirect(url_for('account'))
         return f(*args, **kwargs)
     return decorated_function
@@ -49,7 +59,7 @@ def group_and_count_on_field(field):
 
 
 def render_individual_page(group_by, id, template):
-    "render individual page, for example patients-->patient or variants-->variant"
+    '''render individual page, for example patients-->patient or variants-->variant'''
     variants = variant_col.find({group_by: id})
     # remove group_by from the fields list as its displayed at top of page and redundant for every row
     fields = list(filter(lambda x: x != group_by, default_fields))
@@ -57,7 +67,7 @@ def render_individual_page(group_by, id, template):
 
 
 def check_if_user_active(usercheck):
-    if usercheck.active == True:
+    if usercheck.active is True:
         return False
     else:
         return True
@@ -72,7 +82,6 @@ def index():
     variant_count = group_and_count_on_field("$fullgnomen")
     patient_count = group_and_count_on_field("$dn_no")
     gene_count = group_and_count_on_field("$gene")
-
     return render_template("index.html", v=variant_count, p=patient_count, g=gene_count, t=total_count)
 
 
@@ -89,18 +98,21 @@ def patient(id):
 
 @app.route('/gene/<id>')
 @login_required
+@diaggen_role_required
 def gene(id):
     return render_individual_page("gene", id, "gene.html")
 
 
 @app.route('/variant/<id>')
 @login_required
+@diaggen_role_required
 def variant(id):
     return render_individual_page("fullgnomen", id, "variant.html")
 
 
 @app.route('/genes')
 @login_required
+@diaggen_role_required
 def genes():
     return render_template("genes.html")
 
@@ -113,6 +125,7 @@ def patients():
 
 @app.route('/variants')
 @login_required
+@diaggen_role_required
 def variants():
     fields = columns
     return render_template('variants.html', fields=fields)
@@ -120,6 +133,7 @@ def variants():
 
 @app.route('/all')
 @login_required
+@diaggen_role_required
 def all():
     fields = all_fields
     return render_template('all.html', fields=fields)
@@ -137,12 +151,14 @@ def vus(id):
 
 @app.route('/_get_variant_data')
 @login_required
+@diaggen_role_required
 def get_variant_data():
     return get_data("fullgnomen")
 
 
 @app.route('/_get_gene_data')
 @login_required
+@diaggen_role_required
 def get_gene_data():
     return get_data("gene")
 
@@ -155,6 +171,7 @@ def get_patient_data():
 
 @app.route('/_get_all_data')
 @login_required
+@diaggen_role_required
 def get_all_data():
     index_column = "_id"
     collection = "variant"

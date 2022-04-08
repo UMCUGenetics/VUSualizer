@@ -4,7 +4,6 @@ import json
 from flask_login import UserMixin
 from flask_security import UserMixin
 from src import mongo
-from . import app
 
 
 class User(UserMixin):

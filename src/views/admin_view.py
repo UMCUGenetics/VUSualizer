@@ -4,7 +4,6 @@ from wtforms import form, fields
 from flask import url_for, redirect, request
 from src import mongo
 from .. import admin
-from src.models import User
 
 
 # Customized admin views, user form used in the UserView
