@@ -14,13 +14,12 @@
     <!-- Content Row -->
     <div class="row">
         <div class="col">
-            You are currently logged in as {{ name }},
+            You are currently logged in as {{ name }}
             {% if not current_user.active %}
             however your account is not active yet.
             <p>Therefore you cannot access the data. For more information contact bioinformatica-genetica@umcutrecht.nl.</p>
-            <p><a class="btn btn-primary" href="{{ url_for('logout') }}">logout</a> <a class="btn btn-default"
-                    href="{{ url_for('register') }}">register</a></p>
-            {% elif current_user.role != "ROLE_DIAGGEN" and current_user.role != "ROLE_ADMIN" %}
+            <p><a class="btn btn-primary" href="{{ url_for('logout') }}">logout</a></p>
+            {% elif current_user.role not in ['ROLE_DIAGGEN', 'ROLE_ADMIN'] %}
             with role {{ current_user.role }}
             <p>Therefore you cannot access the "Genes", "Variants" and "List All" pages. For more information contact
                 bioinformatica-genetica@umcutrecht.nl.</p>

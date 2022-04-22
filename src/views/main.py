@@ -29,10 +29,10 @@ def login_required(f):
 
 
 def diaggen_role_required(f):
-    '''Wrapper around the login_required() function of Flask, to also check the active status of the user'''
+    '''Wrapper around the login_required() function of Flask, to also check the current role of the user'''
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_user.role != "ROLE_ADMIN" and current_user.role != "ROLE_DIAGGEN":
+        if current_user.role not in ['ROLE_DIAGGEN', 'ROLE_ADMIN']:
             return redirect(url_for('account'))
         return f(*args, **kwargs)
     return decorated_function
