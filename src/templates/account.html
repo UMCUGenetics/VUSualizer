@@ -3,29 +3,30 @@
 
 {% block content %}
 
-    <!-- Begin Page Content -->
-    <div class="container-fluid">
+<!-- Begin Page Content -->
+<div class="container-fluid">
 
-        <!-- Page Heading -->
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Account</h1>
-        </div>
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Account</h1>
+    </div>
 
-        <!-- Content Row -->
-        <div class="row">
-            <div class="col">
-                You are currently logged in as {{ name }}
-                {% if not current_user.active %}
-                , however your account is not active yet. 
-                <p>Therefore you cannot access the data. For more information contact bioinformatica-genetica@umcutrecht.nl
-
-                <p>
-                <a class="btn btn-primary" href="{{ url_for('logout') }}">logout</a> <a class="btn btn-default" href="{{ url_for('register') }}">register</a>
-                </p>
-                {% endif %}
-            </div>
+    <!-- Content Row -->
+    <div class="row">
+        <div class="col">
+            You are currently logged in as {{ name }}
+            {% if not current_user.active %}
+            however your account is not active yet.
+            <p>Therefore you cannot access the data. For more information contact bioinformatica-genetica@umcutrecht.nl.</p>
+            <p><a class="btn btn-primary" href="{{ url_for('logout') }}">logout</a></p>
+            {% elif current_user.role not in ['ROLE_DIAGGEN', 'ROLE_ADMIN'] %}
+            with role {{ current_user.role }}
+            <p>Therefore you cannot access the "Genes", "Variants" and "List All" pages. For more information contact
+                bioinformatica-genetica@umcutrecht.nl.</p>
+            {% endif %}
         </div>
     </div>
-    <!-- /.container-fluid -->
+</div>
+<!-- /.container-fluid -->
 
 {% endblock %}

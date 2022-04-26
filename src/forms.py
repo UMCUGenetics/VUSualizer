@@ -2,18 +2,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField
 from wtforms.validators import Email, Length, InputRequired, DataRequired, EqualTo
 
-"""
-[VARIABLE] = [FIELD TYPE]('[LABEL]', [
-    validators=[VALIDATOR TYPE](message='[ERROR MESSAGE]')
-])
-"""
-
 
 class RegisterForm(FlaskForm):
-    # name = StringField('name', [
-    #    InputRequired(),
-    #    Length(min=5, max=30)
-    # ])
     email = StringField('email', [
         InputRequired(),
         Email(message='Invalid email'),
