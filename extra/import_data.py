@@ -140,7 +140,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
                     # TODO: make link format correctly for "insertion", "deletion", "substitution" genomic variations
             else:  # on rare occasions, fullGNomen is empty
                 variant['GnomadVariant'] = {variant["type"]: ''}
-        except KeyError:
+        except (KeyError, TypeError):
             logger.info('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
             continue
         # add VUS/variant info to patientdata
