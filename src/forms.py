@@ -28,7 +28,7 @@ class LoginForm(FlaskForm):
     ])
     password = PasswordField('password', [
         InputRequired(),
-        Length(min=5, max=30, message='Your password is either too short or too long.')
+        Length(min=8, max=30, message='Your password is either too short or too long.')
     ])
     remember_me = BooleanField('Remember me')
     submit = SubmitField('Login')

@@ -84,18 +84,36 @@
             bServerSide: false,
             scrollX: true,
             order: [[1, "asc"]],
+            columnDefs: [
+                {
+                    "targets": [3, 12, 14, 15],
+                    "visible": false
+                }
+            ],
         });
 
         $('#patient').dataTable({
             bServerSide: false,
             scrollX: true,
             order: [[1, "asc"]],
+            columnDefs: [
+                {
+                    "targets": [3, 12, 14, 15],
+                    "visible": false
+                }
+            ],
         });
 
         $('#gene').dataTable({
             bServerSide: false,
             scrollX: true,
             order: [[1, "asc"]],
+            columnDefs: [
+                {
+                    "targets": [3, 12, 14, 15],
+                    "visible": false
+                }
+            ],
         });
     </script>
 

@@ -12,8 +12,9 @@ variant_col = mongo.db.variant
 user_col = mongo.db.user
 
 columns = ['#', '_id', 'total']
-default_fields = ["VUS", "dn_no", "gene", "fullgnomen", "Position", "inheritanceMode", "ref", "genotype Patient",
-                  "genotype Mother", "genotype Father", "inheritedFrom", "cdna", "protein", "effect", "transcript", "GnomAD"]
+default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref", 
+                  "genotype Patient", "genotype Mother", "genotype Father", "inheritedFrom", "GnomAD", "fullgnomen",
+                  "transcript"]
 default_order = {"dn_no": 1, "gene": 1}
 variants = []
 
@@ -44,7 +45,7 @@ def redirect_url():
 
 
 all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "start", "stop", "exon", "protein", "classification",
-              "zygosity", "inheritanceMode", "inheritedFrom", "variantAssessment"]
+              "zygosity", "inheritanceMode", "inheritedFrom", "variantAssessment", "transcript"]
 
 
 # START HELPER FUNCTIONS
