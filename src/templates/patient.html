@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% set active_page = "patients" %}
+
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Patient {{ id }}</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row justify-content-center">
+        <div class="col">
+            <div class="card shadow mb-4">
+                <!--<div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Information</h6>
+                    </div>-->
+                <div class="card-body table-responsive">
+                    <table class="table table-striped table-bordered" id="patient" style="width: 100%">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                {% for f in fields %}
+                                <th>{{ f.replace("_", " ") }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for variant in variants %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                {% for f in fields %}
+                                {% set param = {f: variant[f]} %}
+                                <td>
+                                    <!-- Items with links -->
+                                    {% if f == "dn_no" %}
+                                    <a href={{ url_for('patient', id=variant[f]) }}>{{ variant[f] }}</a>
+                                    {% elif f == "gene" %}
+                                    <a href={{ url_for('gene', id=variant[f]) }}>{{ variant[f] }}</a>
+                                    {% elif f == "fullgnomen" %}
+                                        {% for key, value in variant["platformDatasets"].items() %}
+                                        {% if key == "HGVS genomic-level nomenclature (fullGNomen)" %}
+                                        <a href={{ url_for('variant', id=value) }}>{{ value }}</a>
+                                        {% endif %}
+                                        {% endfor %}
+                                    {% elif f == "Details" %}
+                                    <a href={{ url_for('vus', id=variant["_id"]) }}><i class="fas fa-external-link-square-alt fa-2x"></i></a>
+
+                                    <!-- Items without links -->
+                                    {% elif f == "Position" %}
+                                    {{ variant["chromosome"] }}:{{ variant["start"] }}/{{ variant["stop"] }}
+                                    {% elif f == "cdna" %}
+                                        <div style="min-width: 100%; max-width: 200px; word-wrap: break-word">
+                                        {{ variant["cdna"] }}
+                                        </div>
+                                    {% elif f == "genotype Patient" %}
+                                        <div style="min-width: 100%; max-width: 200px; word-wrap: break-word">
+                                        {{ variant["genotype"] }}
+                                        </div>
+                                    {% elif f == "ref" %}
+                                    {{ variant["reference"] }}
+                                    {% elif f == "genotype Mother" %}
+                                        {% for i in range(0,variant["inheritanceAlleles"]|length) %}
+                                        {% if variant["inheritanceAlleles"][i].relationType == "MOTHER" %}
+                                        <div style="min-width: 100%; max-width: 200px; word-wrap: break-word">
+                                        {{ variant["inheritanceAlleles"][i].allele1 }}|{{ variant["inheritanceAlleles"][i].allele2 }}
+                                        </div>
+                                        {% endif %}
+                                        {% endfor %}
+                                    {% elif f == "genotype Father" %}
+                                        {% for i in range(0,variant["inheritanceAlleles"]|length) %}
+                                        {% if variant["inheritanceAlleles"][i].relationType == "FATHER" %}
+                                        <div style="min-width: 100%; max-width: 200px; word-wrap: break-word">
+                                        {{ variant["inheritanceAlleles"][i].allele1 }}|{{ variant["inheritanceAlleles"][i].allele2 }}
+                                        </div>
+                                        {% endif %}
+                                        {% endfor %}
+                                    {% elif f == "GnomAD" %}
+                                        {% for key, value in variant["GnomadVariant"].items() %}
+                                        {% if key == "Single nucleotide variant" %}
+                                        <a href='https://gnomad.broadinstitute.org/variant/{{ value }}' target="_blank">{{ key }}</a>
+                                        {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                    {{ variant[f] }}
+                                    <!--<a href={{ url_for('all', **param) }}>{{ variant[f] }}</a>-->
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- /.container-fluid -->
+
+{% endblock %}
