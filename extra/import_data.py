@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/data/vusualizer/venv/bin/python3
 
 import re
 import time
