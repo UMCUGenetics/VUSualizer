@@ -1,7 +1,5 @@
 '''
 Settings and start-script for activating the VUSualizer on the server.
-Use this run.py on the serverside. change name of run_dwergeik.py to run.py
-The original run.py is for using VUSualizer locally
 '''
 
 from src import app as application
