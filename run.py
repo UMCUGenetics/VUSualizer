@@ -4,9 +4,10 @@ Settings and start-script for activating the VUSualizer on the server.
 
 from src import app as application
 import sys
+import extra.config
 
 # /data/vusualizer/VUSualizer, use location of VUSualizer on the serverside
-sys.path.insert(0, '/data/vusualizer/VUSualizer')
+sys.path.insert(0, extra.config.vusualizer_path)
 
 
 class WSGIMiddleware(object):

@@ -12,7 +12,7 @@ variant_col = mongo.db.variant
 user_col = mongo.db.user
 
 columns = ['#', '_id', 'total']
-default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref", 
+default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
                   "genotype Patient", "genotype Mother", "genotype Father", "inheritedFrom", "GnomAD", "fullgnomen",
                   "transcript"]
 default_order = {"dn_no": 1, "gene": 1}

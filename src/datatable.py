@@ -149,7 +149,6 @@ class DataTablesServer:
         },
         :return: filter dict
         """
-        # TODO : search per individual column? not needed?
         filter = {}
         if self.request['search']['value'] != "":
             # need to match for every field

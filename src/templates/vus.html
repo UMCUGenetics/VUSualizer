@@ -3,20 +3,19 @@
 
 <!-- field id, url, visual name-->
 {% set external_links = [
-('gene_(ensemblgene)', 'http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?g=', 'Ensembl'),
 ('omimRefs', 'https://www.omim.org/entry/', 'OMIM®'),
 ('omimMorbidRefs', 'https://omim.org/entry/', 'OMIM®'),
 ('dbSNP', 'https://www.ncbi.nlm.nih.gov/snp/', 'dbSNP'),
 ('transcript', 'https://www.ncbi.nlm.nih.gov/nuccore/', 'GenBank'),
 ('gene', 'https://www.genecards.org/cgi-bin/carddisp.pl?gene=', 'GeneCard'),
 ('COSMIC Id (cosmicId)', 'https://cancer.sanger.ac.uk/cosmic/search?q=', 'COSMIC'),
-('Gene (ensemblGene)', 'https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=', 'EnsemblGene'),
+('Gene (ensemblGene)', 'https://grch37.ensembl.org/Homo_sapiens/Gene/Summary?g=', 'EnsemblGene'),
 ('Single nucleotide variant', 'https://franklin.genoox.com/clinical-db/variant/snp/chr', 'Franklin'),
 ('Single nucleotide variant', 'https://gnomad.broadinstitute.org/variant/', 'gnomAD'),
 ('GnomadVariant', 'https://gnomad.broadinstitute.org/variant/', 'gnomAD')
 ] -%}
 {% set link_list = [
-'gene_(ensemblgene)', 'omimRefs', 'omimMorbidRefs', 'dbSNP', 'transcript', 'gene', 'Single nucleotide variant', 
+'omimRefs', 'omimMorbidRefs', 'dbSNP', 'transcript', 'gene', 'Single nucleotide variant', 
 'Insertion', 'Deletion', 'Substitution', 'COSMIC Id (cosmicId)', 'Gene (ensemblGene)'
 ] -%}
 

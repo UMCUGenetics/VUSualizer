@@ -38,7 +38,6 @@ def import_from_alissa(alissa_client, start_time, logger):
         analysis_report = alissa_client.get_analysis_report(analysis['id'])
         if analysis['classificationTreeName'] and analysis_report:
             # retrieve basic info from Alissa about the analysis
-            # patient_dn_no = alissa_client.get_analysis_report(analysis['id'])[0]['reportName'].split("_")[0]
             patient_dn_no = analysis_report[0]['reportName'].split("_")[0]
             logger.info('start Alissa retrieval of: %s with analysisID: %s' % (patient_dn_no, analysis['id']))
             inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
@@ -59,12 +58,12 @@ def import_from_alissa(alissa_client, start_time, logger):
                 except json.decoder.JSONDecodeError:
                     break
             logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
-            # sometimes the there are no VUS marked or found within an analysis, then no info needs to be uploaded
+            # sometimes there are no VUS marked or found within an analysis, then no info needs to be uploaded
             if vus_export == []:
                 logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
             elif vus_export is None:
                 logger.info('Patient %s not uploaded, Alissa database temporarily not available' % patient_dn_no)
-                # TODO send (email) notification of this error, see issue #11 GitHub
+                # TODO send (email) notification of this error
                 exit(1)
             else:
                 upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger)
@@ -95,7 +94,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
         elif last_updated_on_Alissa < last_updated_on_mongoDB:
             logger.info('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
-            # TODO send (email) notification of this error, see issue #11 GitHub
+            # TODO send (email) notification of this error
 
     # get all relevant info from one patient into one dictionary.
     patient = {}

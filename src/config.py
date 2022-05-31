@@ -1,6 +1,6 @@
 '''
 Used by __init__.py to set the MongoDB configuration for the whole app
-The app can then be references/imported by other script using the __init__.py
+The app can then be referenced/imported by other script using the __init__.py
 '''
 
 DEBUG = True

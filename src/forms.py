@@ -7,7 +7,7 @@ class RegisterForm(FlaskForm):
     email = StringField('email', [
         InputRequired(),
         Email(message='Invalid email'),
-        Length(max=60)
+        Length(max=60, message='Your email is too long')
     ])
     password = PasswordField('password', [
         InputRequired(),
@@ -28,7 +28,7 @@ class LoginForm(FlaskForm):
     ])
     password = PasswordField('password', [
         InputRequired(),
-        Length(min=8, max=30, message='Your password is either too short or too long.')
+        Length(min=5, max=60, message='Your password is either too short or too long.')
     ])
     remember_me = BooleanField('Remember me')
     submit = SubmitField('Login')

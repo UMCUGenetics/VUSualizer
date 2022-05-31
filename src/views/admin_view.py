@@ -14,9 +14,9 @@ class UserForm(form.Form):
     active = fields.BooleanField('Active')
     role = fields.StringField('Role')
 
-# add UserView, where admin can change properties of users
-class UserView(ModelView):
 
+class UserView(ModelView):
+    # add UserView, where admin can change properties of users
     def is_accessible(self):
         '''Only allow access to adminpages if user has an admin role. Wrapper for the Flask is_accessible function'''
         if current_user.is_authenticated:
