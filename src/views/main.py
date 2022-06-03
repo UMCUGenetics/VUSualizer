@@ -179,10 +179,3 @@ def get_all_data():
     fields = all_fields
     results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
     return json.dumps(results, sort_keys=True, default=str)
-
-
-def get_data(group_by):
-    index_column = "_id"
-    collection = "variant"
-    results = DataTablesServer(request, columns, index_column, collection, group_by).output_result_on_queried_fields()
-    return json.dumps(results, sort_keys=True, default=str)

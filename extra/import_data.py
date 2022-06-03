@@ -62,7 +62,7 @@ def import_from_alissa(alissa_client, start_time, logger):
             if vus_export == []:
                 logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
             elif vus_export is None:
-                logger.info('Patient %s not uploaded, Alissa database temporarily not available' % patient_dn_no)
+                logger.error('Patient %s not uploaded, Alissa database temporarily not available' % patient_dn_no)
                 # TODO send (email) notification of this error
                 exit(1)
             else:
@@ -93,7 +93,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             db.delete_many({"dn_no": patient_dn_no})
             logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
         elif last_updated_on_Alissa < last_updated_on_mongoDB:
-            logger.info('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
+            logger.error('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
             # TODO send (email) notification of this error
 
     # get all relevant info from one patient into one dictionary.
@@ -118,7 +118,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
         if source_name and source_value:
             externalSources_dict[source_name] = source_value
         else:
-            logger.info("error, externalsources has changed format in Alissa")
+            logger.error("error, externalsources has changed format in Alissa")
     patient["annotation_sources"] = externalSources_dict  # add previous section to total patient info
 
     # extract information from the VUS/variant data and add to "patient"
@@ -140,7 +140,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             else:  # on rare occasions, fullGNomen is empty
                 variant['GnomadVariant'] = {variant["type"]: ''}
         except (KeyError, TypeError):
-            logger.info('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
+            logger.error('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
             continue
         # add VUS/variant info to patientdata
         variant.update(patient)

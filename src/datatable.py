@@ -33,7 +33,6 @@ class DataTablesServer:
 
         data_rows = []
         i = self.paging().start
-
         for row in self.result_data:
             data_row = []
             i += 1
@@ -41,16 +40,12 @@ class DataTablesServer:
             for col in self.columns:
                 if col in row:
                     val = row[col]
+                    if isinstance(val, dict):
+                        val = json.dumps(val)
+                    elif isinstance(val, list):
+                        val = ", ".join(val)
                 else:
                     val = "-"
-
-                if isinstance(val, dict):
-                    print("YAS")
-                    val = json.dumps(val)
-                    print(val)
-                elif isinstance(val, list):
-                    val = ", ".join(val)
-
                 if isinstance(val, str):
                     val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
 
@@ -65,39 +60,6 @@ class DataTablesServer:
                     uwu = val
                 data_row.append(uwu)
             data_rows.append(data_row)
-        output['data'] = data_rows
-        return output
-
-    def output_result_on_queried_fields(self):
-        output = {}
-        output['draw'] = str(int(self.request['draw']))
-        output['recordsTotal'] = str(self.records_total)
-        output['recordsFiltered'] = str(self.records_filtered)
-
-        data_rows = []
-        i = self.paging().start
-        for row in self.result_data:
-            data_row = []
-            i += 1
-            data_row.append(i)
-            for col, val in row.items():
-                uwu = ""
-                if col == "_id":
-                    if self.group_by == "fullgnomen":
-                        uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "dn_no":
-                        uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "gene":
-                        uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                elif col == "total":
-                    uwu = val
-                else:
-                    # filtering like this doesn't work yet
-                    # uwu = '<a href="/all?{1}={0}">{0}</a>'.format(val, col)
-                    uwu = val
-                data_row.append(uwu)
-            data_rows.append(data_row)
-
         output['data'] = data_rows
         return output
 
@@ -141,14 +103,6 @@ class DataTablesServer:
             self.records_filtered = len(list(self.dbh[self.collection].find(filter)))
 
     def filtering(self):
-        """
-        build your filter spec
-        "search": {
-            "regex": "false",
-            "value": ""
-        },
-        :return: filter dict
-        """
         filter = {}
         if self.request['search']['value'] != "":
             # need to match for every field
@@ -165,16 +119,6 @@ class DataTablesServer:
         return filter
 
     def sorting(self):
-        """
-        mongo translation for sorting order
-        "order": {
-            "0": {
-                "column": "0",
-                "dir": "asc"
-            }
-        },
-        :return: order dict { col name : direction }
-        """
         order = {}
         # translation for sorting between datatables api and mongodb
         order_dict = {'asc': 1, 'desc': -1}
