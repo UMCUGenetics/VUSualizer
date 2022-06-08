@@ -118,7 +118,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
         if source_name and source_value:
             externalSources_dict[source_name] = source_value
         else:
-            logger.error("error, externalsources has changed format in Alissa")
+            logger.error("error, the parameter 'externalSources' has changed format in Alissa")
     patient["annotation_sources"] = externalSources_dict  # add previous section to total patient info
 
     # extract information from the VUS/variant data and add to "patient"
@@ -127,21 +127,22 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
         try:
             fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)']
             variant['fullgnomen'] = fullgnomen  # NC_000001.10:g.12345678T>A
-            if fullgnomen:  # NC_000001.10:g.12345678T>A
-                gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
-                if variant["type"] == "snp":
-                    gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
-                    gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-', ("-".join(gnomad_data)))  # 1-12345678-T-A
-                    variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
-                elif variant["type"] in ["insertion", "deletion", "substitution"]:
-                    gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                    variant['GnomadVariant'] = {variant["type"].capitalize(): gnomad_data}
-                    # TODO: make link format correctly for "insertion", "deletion", "substitution" genomic variations
-            else:  # on rare occasions, fullGNomen is empty
-                variant['GnomadVariant'] = {variant["type"]: ''}
         except (KeyError, TypeError):
             logger.error('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
             continue
+        if fullgnomen:  # NC_000001.10:g.12345678T>A
+            gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
+            if variant["type"] == "snp":
+                gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
+                gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-', ("-".join(gnomad_data)))  # 1-12345678-T-A
+                variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
+            elif variant["type"] in ["insertion", "deletion", "substitution"]:
+                gnomad_data = variant["chromosome"] + "-" + gnomad_data
+                variant['GnomadVariant'] = {variant["type"].capitalize(): gnomad_data}
+                # TODO: make link format correctly for "insertion", "deletion", "substitution" genomic variations
+        else:  # on rare occasions, fullGNomen is empty
+            variant['GnomadVariant'] = {variant["type"]: ''}
+
         # add VUS/variant info to patientdata
         variant.update(patient)
         db.insert_one(variant)
