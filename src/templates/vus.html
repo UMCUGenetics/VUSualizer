@@ -42,12 +42,14 @@
                             {% for k in variant %}
                             {% set v = variant[k] %}
                             <tr>
-                                {% if k in ["id", "annotation_sources", "labels", "databaseReferences",
+                                {% if k in ["_id", "id", "annotation_sources", "labels", "databaseReferences", "alleleInScope",
                                 "externalDatabases", "familyMembers", "inheritanceAlleles", "analysisType", "labResults",
-                                "status", "GnomadVariant", "platformDatasets", "classificationTreeLabelsScore"] %}
-                                <!-- do nothing -->
+                                "status", "GnomadVariant", "platformDatasets", "classificationTreeLabelsScore", "thirdParty",
+                                "readDepth", "toReview", "patient accesion no", "summary", "patientId", "assessment",
+                                "domainName", "createdOn", "createdBy", "assignedOn"] %}
+                                <!-- do nothing (does not show in table) -->
                                 {% elif v == "" or v == [] or v == ['NONE'] %}
-                                <!-- do nothing -->
+                                <!-- do nothing (does not show in table) -->
                                 {% elif k == "labResults" %}
                                 {% for i in range(0,variant['labResults']|length) %}
                                     {% for key, value in variant['labResults'][i].items() %}

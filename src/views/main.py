@@ -3,6 +3,7 @@ from src import app, mongo
 from src.datatable import DataTablesServer
 from flask_login import login_required, current_user
 from bson import ObjectId
+from collections import OrderedDict
 from functools import wraps
 import json
 
@@ -145,9 +146,12 @@ def all():
 def vus(id):
     try:
         ret = variant_col.find_one({"_id": ObjectId(id)})
+        # enable orderedDict to manipulate order of this dictionary before passing it to the VUS template
+        ordered_ret = OrderedDict(ret)
+        ordered_ret.move_to_end('chromosome', last=False) # sets chromosome at the top of VUS page
     except:
         print("problem " + id)
-    return render_template('vus.html', variant=ret)
+    return render_template('vus.html', variant=ordered_ret)
 
 
 @app.route('/_get_variant_data')
@@ -178,4 +182,10 @@ def get_all_data():
     collection = "variant"
     fields = all_fields
     results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
+    return json.dumps(results, sort_keys=True, default=str)
+
+def get_data(group_by):
+    index_column = "_id"
+    collection = "variant"
+    results = DataTablesServer(request, columns, index_column, collection, group_by).output_result_on_queried_fields()
     return json.dumps(results, sort_keys=True, default=str)

@@ -5,6 +5,17 @@ import json
 
 max_string_length = 50
 
+def add_data_to_page(col, val, fields):
+    uwu = ""
+    if col == "fullgnomen":
+        uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
+    elif col == "dn_no":
+        uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
+    elif col == "gene":
+        uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+    elif fields == "given":
+        uwu = val
+    return uwu
 
 class DataTablesServer:
 
@@ -48,14 +59,44 @@ class DataTablesServer:
                     val = "-"
                 if isinstance(val, str):
                     val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
+                
+                uwu = add_data_to_page(col, val, fields="given")
+                #uwu = ""
+                #if col == "fullgnomen":
+                #    uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
+                #elif col == "dn_no":
+                #    uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
+                #elif col == "gene":
+                #    uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+                #else:
+                #    uwu = val
+                data_row.append(uwu)
+            data_rows.append(data_row)
+        output['data'] = data_rows
+        return output
 
+    def output_result_on_queried_fields(self):
+        output = {}
+        output['draw'] = str(int(self.request['draw']))
+        output['recordsTotal'] = str(self.records_total)
+        output['recordsFiltered'] = str(self.records_filtered)
+
+        data_rows = []
+        i = self.paging().start
+        for row in self.result_data:
+            data_row = []
+            i += 1
+            data_row.append(i)
+            for col, val in row.items():
                 uwu = ""
-                if col == "fullgnomen":
-                    uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-                elif col == "dn_no":
-                    uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                elif col == "gene":
-                    uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+                if col == "_id":
+                    uwu = add_data_to_page(col=self.group_by, val=val, fields="queried")
+                    #if self.group_by == "fullgnomen":
+                    #    uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
+                    #elif self.group_by == "dn_no":
+                    #    uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
+                    #elif self.group_by == "gene":
+                    #    uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
                 else:
                     uwu = val
                 data_row.append(uwu)
