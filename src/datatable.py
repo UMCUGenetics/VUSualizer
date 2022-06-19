@@ -42,42 +42,42 @@ class DataTablesServer:
             data_row = []
             i += 1
 
-            if field == "given": # datatable for 'List All' page, shows all patients/variants/genes data with given columns
+            if field == "given":  # datatable for 'List All' page, shows all patients/variants/genes data with given columns
                 data_row.append("<a href='/vus/{0}'>{1}</a>".format(row['_id'], i))
                 for col in self.columns:
-                    ######## get data from each mongo entry. for example: 'start': '241905405'
+                    # get data from each mongo entry. for example: 'start': '241905405'
                     # col = start
                     # row = complete full entry (dict) with data for 1 patient (dicts, lists and strings)
                     # val = row[col] = mongoEntry['start'] = '241905405'
                     if col in row:
                         val = row[col]
                     # entries in Mongo are either another dict or a list (multiple keys) or string if only one key
-                        if isinstance(val, dict): 
+                        if isinstance(val, dict):
                             # example: 'databaseReferences': {'dbSNP': 'rs547225878', 'omimRefs': '', 'omimMorbidRefs': ''}
-                            val = json.dumps(val) # convert dict to string
-                        elif isinstance(val, list): 
-                            # example: 'familyMembers': [{'patientId': 12345, 'affected': False, 'relationType': 'MOTHER'}, 
+                            val = json.dumps(val)  # convert dict to string
+                        elif isinstance(val, list):
+                            # example: 'familyMembers': [{'patientId': 12345, 'affected': False, 'relationType': 'MOTHER'},
                             # {'patientId': 67890, 'affected': False, 'relationType': 'FATHER'}]
-                            val = ", ".join(val) # convert list to string
+                            val = ", ".join(val)  # convert list to string
                     else:
                         val = "-"
                     # after everything is converted to string, check if the string is too long to fit
                     # also check string entries that were already a string): example: 'start': '241905405', 'stop': '241905405'
                     if isinstance(val, str):
                         val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
-                    
+
                     # make direct links if variant, gene or patient
                     uwu = self.add_link_to_table(col, val, fields="given")
                     # add data to the datatable
                     data_row.append(uwu)
                 data_rows.append(data_row)
-            
+
             # datatable for patients/genes/variants page. shows all available patients, genes or variants fields '#, id, total'
-            # all a queried from mongodb. the contents of the "id" column changes to either patients, genes or variants 
-            if field == "queried": 
+            # all a queried from mongodb. the contents of the "id" column changes to either patients, genes or variants
+            if field == "queried":
                 data_row.append(i)
-                for col, val in row.items(): 
-                    ######## get data from each row item. columns = ['#', '_id', 'total']; are mongo collection columns
+                for col, val in row.items():
+                    # get data from each row item. columns = ['#', '_id', 'total']; are mongo collection columns
                     # col = _id
                     # row = {'_id': 'NC_000014.8:g.105412831G>A', 'total': 1, 'protein': []}
                     # val = NC_000014.8:g.105412831G>A
