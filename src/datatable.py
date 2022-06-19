@@ -6,9 +6,6 @@ import json
 max_string_length = 50
 
 
-
-
-
 class DataTablesServer:
 
     def __init__(self, request, columns, index, collection, group_by=None):
@@ -19,8 +16,6 @@ class DataTablesServer:
 
         # values specified by the datatable for filtering, sorting, paging
         self.request = parser.parse(request.query_string)
-        # print(json.dumps(self.request, sort_keys=True, indent=4))
-
         self.dbh = mongo.db
         self.result_data = None  # results from the db
         self.records_filtered = 0  # total in the table after filtering
@@ -28,7 +23,7 @@ class DataTablesServer:
 
         self.run_queries()
 
-    def add_data_to_page(self, col, val, fields):
+    def add_link_to_table(self, col, val, fields):
         uwu = ""
         if col == "fullgnomen":
             uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
@@ -46,32 +41,58 @@ class DataTablesServer:
         for row in self.result_data:
             data_row = []
             i += 1
-            if field == "given":
+
+            if field == "given": # datatable for 'List All' page, shows all patients/variants/genes data with given columns
                 data_row.append("<a href='/vus/{0}'>{1}</a>".format(row['_id'], i))
                 for col in self.columns:
+                    ######## get data from each mongo entry. for example: 'start': '241905405'
+                    # col = start
+                    # row = complete full entry (dict) with data for 1 patient (dicts, lists and strings)
+                    # val = row[col] = mongoEntry['start'] = '241905405'
                     if col in row:
                         val = row[col]
-                        if isinstance(val, dict):
-                            val = json.dumps(val)
-                        elif isinstance(val, list):
-                            val = ", ".join(val)
+                    # entries in Mongo are either another dict or a list (multiple keys) or string if only one key
+                        if isinstance(val, dict): 
+                            # example: 'databaseReferences': {'dbSNP': 'rs547225878', 'omimRefs': '', 'omimMorbidRefs': ''}
+                            val = json.dumps(val) # convert dict to string
+                        elif isinstance(val, list): 
+                            # example: 'familyMembers': [{'patientId': 12345, 'affected': False, 'relationType': 'MOTHER'}, 
+                            # {'patientId': 67890, 'affected': False, 'relationType': 'FATHER'}]
+                            val = ", ".join(val) # convert list to string
                     else:
                         val = "-"
+                    # after everything is converted to string, check if the string is too long to fit
+                    # also check string entries that were already a string): example: 'start': '241905405', 'stop': '241905405'
                     if isinstance(val, str):
                         val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
-                    uwu = self.add_data_to_page(col, val, fields="given")
+                    
+                    # make direct links if variant, gene or patient
+                    uwu = self.add_link_to_table(col, val, fields="given")
+                    # add data to the datatable
                     data_row.append(uwu)
                 data_rows.append(data_row)
-            if field == "queried":
+            
+            # datatable for patients/genes/variants page. shows all available patients, genes or variants fields '#, id, total'
+            # all a queried from mongodb. the contents of the "id" column changes to either patients, genes or variants 
+            if field == "queried": 
                 data_row.append(i)
-                for col, val in row.items():
+                for col, val in row.items(): 
+                    ######## get data from each row item. columns = ['#', '_id', 'total']; are mongo collection columns
+                    # col = _id
+                    # row = {'_id': 'NC_000014.8:g.105412831G>A', 'total': 1, 'protein': []}
+                    # val = NC_000014.8:g.105412831G>A
                     uwu = ""
+                    # Lookups specifying { _id: <someval> } refer to the _id index as their guide
                     if col == "_id":
-                        uwu = self.add_data_to_page(col=self.group_by, val=val, fields="queried")
+                        # _id is either a variant, gene or patient. add direct links in datatable
+                        uwu = self.add_link_to_table(col=self.group_by, val=val, fields="queried")
                     else:
+                        # if column is anything else than _id, just add it without link
                         uwu = val
+                    # add data to the datatable
                     data_row.append(uwu)
                 data_rows.append(data_row)
+
         output = {}
         output['draw'] = str(int(self.request['draw']))
         output['recordsTotal'] = str(self.records_total)

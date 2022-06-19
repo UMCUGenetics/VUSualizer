@@ -12,7 +12,9 @@ import json
 variant_col = mongo.db.variant
 user_col = mongo.db.user
 
-columns = ['#', '_id', 'total']
+# _id is the primary key on elements in a mongodb collection; _id is automatically indexed. 
+# Lookups specifying { _id: <someval> } refer to the _id index as their guide
+mongo_columns = ['#', '_id', 'total']
 default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
                   "genotype Patient", "genotype Mother", "genotype Father", "inheritedFrom", "GnomAD", "fullgnomen",
                   "transcript"]
@@ -129,7 +131,7 @@ def patients():
 @login_required
 @diaggen_role_required
 def variants():
-    fields = columns
+    fields = mongo_columns
     return render_template('variants.html', fields=fields)
 
 
@@ -187,5 +189,5 @@ def get_all_data():
 def get_data(group_by):
     index_column = "_id"
     collection = "variant"
-    results = DataTablesServer(request, columns, index_column, collection, group_by).output_result_on_fields(field="queried")
+    results = DataTablesServer(request, mongo_columns, index_column, collection, group_by).output_result_on_fields(field="queried")
     return json.dumps(results, sort_keys=True, default=str)
