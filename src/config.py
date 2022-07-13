@@ -7,7 +7,7 @@ DEBUG = True
 TESTING = True
 
 # mongo db
-SECRET_KEY = ""
+SECRET_KEY = "hallo"
 MONGO_URI = "mongodb://localhost:27017/vus"
 
 # debug bar
