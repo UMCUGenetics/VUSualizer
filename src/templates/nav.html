@@ -1,0 +1,59 @@
+<!-- Topbar -->
+<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+    <!-- Disclaimer for useage VUSualizer -->
+    <p> The variants and information shown in this application are NOT according to diagnostic standards.
+        <u>This application is for research purposes only!</u>
+    </p>
+    <!-- Sidebar Toggle (Topbar) -->
+    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+        <i class="fa fa-bars"></i>
+    </button>
+
+    <!-- Topbar Navbar -->
+    <ul class="navbar-nav ml-auto">
+
+        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+        <li class="nav-item dropdown no-arrow d-sm-none">
+            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-search fa-fw"></i>
+            </a>
+        </li>
+
+        {% if current_user.is_authenticated %}
+        <div class="topbar-divider d-none d-sm-block"></div>
+
+        <!-- Nav Item - User Information -->
+        <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ current_user.email }}</span>
+                <!--<img class="img-profile rounded-circle" src="#">-->
+            </a>
+            <!-- Dropdown - User Information -->
+            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                <a class="dropdown-item" href={{ url_for('account') }}>
+                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Profile
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Logout
+                </a>
+            </div>
+        </li>
+        {% else %}
+        <li class="nav-item {% if " login"==active_page %}active{% endif %}">
+            <a class="nav-link" href={{ url_for('login') }}><span><i class="fas fa-sign-out-alt"></i> Login</span></a>
+        </li>
+        <li class="nav-item {% if " register"==active_page %}active{% endif %}">
+            <a class="nav-link" href={{ url_for('register') }}><span><i class="fas fa-user-plus"></i>
+                    Register</span></a>
+        </li>
+        {% endif %}
+
+    </ul>
+
+</nav>
+<!-- End of Topbar -->

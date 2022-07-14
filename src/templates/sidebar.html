@@ -1,0 +1,54 @@
+{% set pages = [
+( url_for('patients'), 'patients', '<i class="fas fa-heartbeat"></i> Patients'),
+( url_for('genes'), 'genes', '<i class="fas fa-dna"></i> Genes'),
+( url_for('variants'), 'variants', '<i class="fas fa-random"></i> Variants')
+] -%}
+
+
+<!-- Sidebar -->
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href={{ url_for('index') }}>
+        <div class="sidebar-brand-icon rotate-n-15">
+            <i class="fas fa-dragon"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">VUSualizer</div>
+    </a>
+
+    <hr class="sidebar-divider my-0">
+
+
+    <li class="nav-item {% if active_page == " index" %}active{% endif %}">
+        <a class="nav-link" href={{ url_for('index') }}><span><i class="fas fa-home"></i> Home</span></a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Group by
+    </div>
+
+    {% for href, id, caption in pages %}
+    <li class="nav-item {% if id == active_page %}active{% endif %}">
+        <a class="nav-link" href="{{ href|e }}"><span>{{ caption|safe }}</span></a>
+    </li>
+    {% endfor %}
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <li class="nav-item {% if active_page == " all" %}active{% endif %}">
+        <a class="nav-link" href={{ url_for('all') }}><span><i class="fas fa-search"></i> List All</span></a>
+    </li>
+
+    <hr class="sidebar-divider">
+
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+
+</ul>
+<!-- End of Sidebar -->

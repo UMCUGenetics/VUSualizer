@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% set active_page = "register" %}
+{% from "_formhelpers.html" import render_input %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-xl-6 col-lg-7 col-md-8 col-sm-9">
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <div class="p-5">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    {% for message in messages %}
+                    {{ message }}
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                    <form action="/register" method="post">
+                        {{ form.hidden_tag() }}
+                        {{ render_input(form.email, "at", class="form-control", placeholder="Email Address") }}
+                        {{ render_input(form.password, "key", class="form-control", placeholder="Password") }}
+                        {{ render_input(form.confirm, "check", class="form-control", placeholder="Confirm Password") }}
+                        {{ form.submit(class="btn btn-primary btn-user btn-block") }}
+                    </form>
+                    <hr>
+                    <div class="text-center">
+                        <a class="small" href="{{ url_for('login') }}">Login instead</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

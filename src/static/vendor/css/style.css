@@ -1,0 +1,102 @@
+:root { /* black or white text suitable */
+
+    /* Jellyfish Hues */
+    --moonstone: #3EA1B6; /* black */
+    --moonstone_dark: #368D9F; /* white */
+    --moonstone_darker: #26626F; /* white */
+    --blue_sapphire: #0E6B8C; /* white */
+    --space_cadet: #133855; /* white */
+    --space_grey: #486B86; /* white */
+    --dark_blue-gray: #6B669E; /* white */
+    --purpleh: #9A6894; /* white */
+    --lenurple: #BB90C8; /* black */
+    --lenurple_dark: #887B87; /* white */
+    --piggy_pink: #EFD8EC; /* black */
+    --piggy_pink_dark: #AF6D7D; /* white */
+
+    /* Colorful Fish */
+    --dark_sky_blue: #89C3CA; /* black */
+    --yellow-green: #C6EC8E; /* black */
+    --maize: #FFCB4B; /* black */
+    --cerise_pink: #E84583; /* white */
+    --byzantine: #AD33B9; /* white */
+
+    /* Calling Life */
+    --metallic_blue: #2A5C84; /* white */
+    --light_sea_green: #2DA9AF; /* black */
+    --blond: #FFF3BD; /* black */
+    --pastel_red: #F76560; /* black */
+    --boysenberry: #8E2F60; /* white */
+}
+
+/* sidebar start */
+.sidebar {
+    background: var(--moonstone_dark) !important;
+}
+
+/* sidebar end */
+
+
+/* primary start */
+.text-primary {
+    color: var(--blue_sapphire) !important;
+}
+
+.border-left-primary {
+    border-left: 0.25rem solid var(--blue_sapphire) !important;
+}
+
+.btn-primary {
+    background-color: var(--blue_sapphire) !important;
+    border-bottom-color: var(--blue_sapphire) !important;
+    border-top-color: var(--blue_sapphire) !important;
+}
+
+/* primary end */
+
+
+/* success start */
+.text-success {
+    color: var(--dark_blue-gray) !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid var(--dark_blue-gray) !important;
+}
+
+/* success end */
+
+
+/* info start */
+.text-info {
+    color: var(--purpleh) !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid var(--purpleh) !important;
+}
+
+/* info end */
+
+
+/* warning start */
+.text-warning {
+    color: var(--piggy_pink_dark) !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid var(--piggy_pink_dark) !important;
+}
+
+/* warning end */
+
+/* a start */
+a {
+    color: var(--space_grey);
+}
+
+a:hover {
+    color: var(--space_cadet);
+}
+
+/* a end */

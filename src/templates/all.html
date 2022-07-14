@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% set active_page = "all" %}
+
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Variants</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <div class="col">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="all" style="width: 100%">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    {% for f in fields %}
+                                    <th>{{ f.replace("_", " ") }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {# data will be provided with api #}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.container-fluid -->
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        let tableName = "#all";
+        let cols;
+        let f = {{ fields | safe }};
+
+        // Iterate each field and print table headers for Datatables
+        f.forEach(function (item) {
+            //str = '<th>' + item + '</th>';
+            //$(str).appendTo(tableName + '>thead>tr');
+
+            //cols.append(f);
+        });
+        //console.log(cols);
+
+
+        $('#all').dataTable({
+            ajax: "/_get_all_data",
+            //columns: cols,
+            scrollX: true
+        });
+
+    </script>
+
+{% endblock %}
