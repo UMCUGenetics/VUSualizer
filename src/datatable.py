@@ -16,8 +16,6 @@ class DataTablesServer:
 
         # values specified by the datatable for filtering, sorting, paging
         self.request = parser.parse(request.query_string)
-        # print(json.dumps(self.request, sort_keys=True, indent=4))
-
         self.dbh = mongo.db
         self.result_data = None  # results from the db
         self.records_filtered = 0  # total in the table after filtering
@@ -25,79 +23,80 @@ class DataTablesServer:
 
         self.run_queries()
 
-    def output_result_on_given_fields(self):
-        output = {}
-        output['draw'] = str(int(self.request['draw']))
-        output['recordsTotal'] = str(self.records_total)
-        output['recordsFiltered'] = str(self.records_filtered)
+    def add_link_to_table(self, col, val, fields):
+        uwu = ""
+        if col == "fullgnomen":
+            uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
+        elif col == "dn_no":
+            uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
+        elif col == "gene":
+            uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
+        elif fields == "given":
+            uwu = val
+        return uwu
 
-        data_rows = []
-        i = self.paging().start
-
-        for row in self.result_data:
-            data_row = []
-            i += 1
-            data_row.append("<a href='/vus/{0}'>{1}</a>".format(row['_id'], i))
-            for col in self.columns:
-                if col in row:
-                    val = row[col]
-                else:
-                    val = "-"
-
-                if isinstance(val, dict):
-                    print("YAS")
-                    val = json.dumps(val)
-                    print(val)
-                elif isinstance(val, list):
-                    val = ", ".join(val)
-
-                if isinstance(val, str):
-                    val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
-
-                uwu = ""
-                if col == "fullgnomen":
-                    uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-                elif col == "dn_no":
-                    uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                elif col == "gene":
-                    uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                else:
-                    uwu = val
-                data_row.append(uwu)
-            data_rows.append(data_row)
-        output['data'] = data_rows
-        return output
-
-    def output_result_on_queried_fields(self):
-        output = {}
-        output['draw'] = str(int(self.request['draw']))
-        output['recordsTotal'] = str(self.records_total)
-        output['recordsFiltered'] = str(self.records_filtered)
-
+    def output_result_on_fields(self, field):
         data_rows = []
         i = self.paging().start
         for row in self.result_data:
             data_row = []
             i += 1
-            data_row.append(i)
-            for col, val in row.items():
-                uwu = ""
-                if col == "_id":
-                    if self.group_by == "fullgnomen":
-                        uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "dn_no":
-                        uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
-                    elif self.group_by == "gene":
-                        uwu = '<a href="/gene/{0}">{0}</a>'.format(val)
-                elif col == "total":
-                    uwu = val
-                else:
-                    # filtering like this doesn't work yet
-                    # uwu = '<a href="/all?{1}={0}">{0}</a>'.format(val, col)
-                    uwu = val
-                data_row.append(uwu)
-            data_rows.append(data_row)
 
+            if field == "given":  # datatable for 'List All' page, shows all patients/variants/genes data with given columns
+                data_row.append("<a href='/vus/{0}'>{1}</a>".format(row['_id'], i))
+                for col in self.columns:
+                    # get data from each mongo entry. for example: 'start': '241905405'
+                    # col = start
+                    # row = complete full entry (dict) with data for 1 patient (dicts, lists and strings)
+                    # val = row[col] = mongoEntry['start'] = '241905405'
+                    if col in row:
+                        val = row[col]
+                    # entries in Mongo are either another dict or a list (multiple keys) or string if only one key
+                        if isinstance(val, dict):
+                            # example: 'databaseReferences': {'dbSNP': 'rs547225878', 'omimRefs': '', 'omimMorbidRefs': ''}
+                            val = json.dumps(val)  # convert dict to string
+                        elif isinstance(val, list):
+                            # example: 'familyMembers': [{'patientId': 12345, 'affected': False, 'relationType': 'MOTHER'},
+                            # {'patientId': 67890, 'affected': False, 'relationType': 'FATHER'}]
+                            val = ", ".join(val)  # convert list to string
+                    else:
+                        val = "-"
+                    # after everything is converted to string, check if the string is too long to fit
+                    # also check string entries that were already a string): example: 'start': '241905405', 'stop': '241905405'
+                    if isinstance(val, str):
+                        val = (val[:max_string_length] + '...') if len(val) > max_string_length else val
+
+                    # make direct links if variant, gene or patient
+                    uwu = self.add_link_to_table(col, val, fields="given")
+                    # add data to the datatable
+                    data_row.append(uwu)
+                data_rows.append(data_row)
+
+            # datatable for patients/genes/variants page. shows all available patients, genes or variants fields '#, id, total'
+            # all a queried from mongodb. the contents of the "id" column changes to either patients, genes or variants
+            if field == "queried":
+                data_row.append(i)
+                for col, val in row.items():
+                    # get data from each row item. columns = ['#', '_id', 'total']; are mongo collection columns
+                    # col = _id
+                    # row = {'_id': 'NC_000014.8:g.105412831G>A', 'total': 1, 'protein': []}
+                    # val = NC_000014.8:g.105412831G>A
+                    uwu = ""
+                    # Lookups specifying { _id: <someval> } refer to the _id index as their guide
+                    if col == "_id":
+                        # _id is either a variant, gene or patient. add direct links in datatable
+                        uwu = self.add_link_to_table(col=self.group_by, val=val, fields="queried")
+                    else:
+                        # if column is anything else than _id, just add it without link
+                        uwu = val
+                    # add data to the datatable
+                    data_row.append(uwu)
+                data_rows.append(data_row)
+
+        output = {}
+        output['draw'] = str(int(self.request['draw']))
+        output['recordsTotal'] = str(self.records_total)
+        output['recordsFiltered'] = str(self.records_filtered)
         output['data'] = data_rows
         return output
 
@@ -141,15 +140,6 @@ class DataTablesServer:
             self.records_filtered = len(list(self.dbh[self.collection].find(filter)))
 
     def filtering(self):
-        """
-        build your filter spec
-        "search": {
-            "regex": "false",
-            "value": ""
-        },
-        :return: filter dict
-        """
-        # TODO : search per individual column? not needed?
         filter = {}
         if self.request['search']['value'] != "":
             # need to match for every field
@@ -166,16 +156,6 @@ class DataTablesServer:
         return filter
 
     def sorting(self):
-        """
-        mongo translation for sorting order
-        "order": {
-            "0": {
-                "column": "0",
-                "dir": "asc"
-            }
-        },
-        :return: order dict { col name : direction }
-        """
         order = {}
         # translation for sorting between datatables api and mongodb
         order_dict = {'asc': 1, 'desc': -1}

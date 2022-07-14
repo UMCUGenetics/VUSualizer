@@ -3,20 +3,21 @@
 
 <!-- field id, url, visual name-->
 {% set external_links = [
-('gene_(ensemblgene)', 'http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?g=', 'Ensembl'),
 ('omimRefs', 'https://www.omim.org/entry/', 'OMIM®'),
 ('omimMorbidRefs', 'https://omim.org/entry/', 'OMIM®'),
-('dbSNP', 'https://www.ncbi.nlm.nih.gov/snp/', 'dbSNP'),
+('dbSNP', 'https://www.ncbi.nlm.nih.gov/snp/?term=', 'dbSNP'),
 ('transcript', 'https://www.ncbi.nlm.nih.gov/nuccore/', 'GenBank'),
 ('gene', 'https://www.genecards.org/cgi-bin/carddisp.pl?gene=', 'GeneCard'),
+('gene', 'https://gnomad.broadinstitute.org/gene/', 'gnomAD'),
 ('COSMIC Id (cosmicId)', 'https://cancer.sanger.ac.uk/cosmic/search?q=', 'COSMIC'),
-('Gene (ensemblGene)', 'https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=', 'EnsemblGene'),
+('Gene (ensemblGene)', 'https://grch37.ensembl.org/Homo_sapiens/Gene/Summary?g=', 'EnsemblGene'),
+('Gene (ensemblGene)', 'https://gnomad.broadinstitute.org/gene/', 'gnomAD'),
 ('Single nucleotide variant', 'https://franklin.genoox.com/clinical-db/variant/snp/chr', 'Franklin'),
 ('Single nucleotide variant', 'https://gnomad.broadinstitute.org/variant/', 'gnomAD'),
 ('GnomadVariant', 'https://gnomad.broadinstitute.org/variant/', 'gnomAD')
 ] -%}
 {% set link_list = [
-'gene_(ensemblgene)', 'omimRefs', 'omimMorbidRefs', 'dbSNP', 'transcript', 'gene', 'Single nucleotide variant', 
+'omimRefs', 'omimMorbidRefs', 'dbSNP', 'transcript', 'gene', 'Single nucleotide variant', 
 'Insertion', 'Deletion', 'Substitution', 'COSMIC Id (cosmicId)', 'Gene (ensemblGene)'
 ] -%}
 
@@ -43,12 +44,14 @@
                             {% for k in variant %}
                             {% set v = variant[k] %}
                             <tr>
-                                {% if k in ["id", "annotation_sources", "labels", "databaseReferences",
+                                {% if k in ["_id", "id", "annotation_sources", "labels", "databaseReferences", "alleleInScope",
                                 "externalDatabases", "familyMembers", "inheritanceAlleles", "analysisType", "labResults",
-                                "status", "GnomadVariant", "platformDatasets", "classificationTreeLabelsScore"] %}
-                                <!-- do nothing -->
+                                "status", "GnomadVariant", "platformDatasets", "classificationTreeLabelsScore", "thirdParty",
+                                "readDepth", "toReview", "patient accesion no", "summary", "patientId", "assessment",
+                                "domainName", "createdOn", "createdBy", "assignedOn", "lastUpdatedBy"] %}
+                                <!-- do nothing (does not show in table) -->
                                 {% elif v == "" or v == [] or v == ['NONE'] %}
-                                <!-- do nothing -->
+                                <!-- do nothing (does not show in table) -->
                                 {% elif k == "labResults" %}
                                 {% for i in range(0,variant['labResults']|length) %}
                                     {% for key, value in variant['labResults'][i].items() %}

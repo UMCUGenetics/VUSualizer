@@ -38,7 +38,6 @@ def import_from_alissa(alissa_client, start_time, logger):
         analysis_report = alissa_client.get_analysis_report(analysis['id'])
         if analysis['classificationTreeName'] and analysis_report:
             # retrieve basic info from Alissa about the analysis
-            # patient_dn_no = alissa_client.get_analysis_report(analysis['id'])[0]['reportName'].split("_")[0]
             patient_dn_no = analysis_report[0]['reportName'].split("_")[0]
             logger.info('start Alissa retrieval of: %s with analysisID: %s' % (patient_dn_no, analysis['id']))
             inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
@@ -59,12 +58,12 @@ def import_from_alissa(alissa_client, start_time, logger):
                 except json.decoder.JSONDecodeError:
                     break
             logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
-            # sometimes the there are no VUS marked or found within an analysis, then no info needs to be uploaded
+            # sometimes there are no VUS marked or found within an analysis, then no info needs to be uploaded
             if vus_export == []:
                 logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
             elif vus_export is None:
-                logger.info('Patient %s not uploaded, Alissa database temporarily not available' % patient_dn_no)
-                # TODO send (email) notification of this error, see issue #11 GitHub
+                logger.error('Patient %s not uploaded, Alissa database temporarily not available' % patient_dn_no)
+                # TODO send (email) notification of this error
                 exit(1)
             else:
                 upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger)
@@ -94,8 +93,8 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             db.delete_many({"dn_no": patient_dn_no})
             logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
         elif last_updated_on_Alissa < last_updated_on_mongoDB:
-            logger.info('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
-            # TODO send (email) notification of this error, see issue #11 GitHub
+            logger.error('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
+            # TODO send (email) notification of this error
 
     # get all relevant info from one patient into one dictionary.
     patient = {}
@@ -119,7 +118,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
         if source_name and source_value:
             externalSources_dict[source_name] = source_value
         else:
-            logger.info("error, externalsources has changed format in Alissa")
+            logger.error("error, the parameter 'externalSources' has changed format in Alissa")
     patient["annotation_sources"] = externalSources_dict  # add previous section to total patient info
 
     # extract information from the VUS/variant data and add to "patient"
@@ -128,21 +127,22 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
         try:
             fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)']
             variant['fullgnomen'] = fullgnomen  # NC_000001.10:g.12345678T>A
-            if fullgnomen:  # NC_000001.10:g.12345678T>A
-                gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
-                if variant["type"] == "snp":
-                    gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
-                    gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-', ("-".join(gnomad_data)))  # 1-12345678-T-A
-                    variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
-                elif variant["type"] in ["insertion", "deletion", "substitution"]:
-                    gnomad_data = variant["chromosome"] + "-" + gnomad_data
-                    variant['GnomadVariant'] = {variant["type"].capitalize(): gnomad_data}
-                    # TODO: make link format correctly for "insertion", "deletion", "substitution" genomic variations
-            else:  # on rare occasions, fullGNomen is empty
-                variant['GnomadVariant'] = {variant["type"]: ''}
         except (KeyError, TypeError):
-            logger.info('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
+            logger.error('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
             continue
+        if fullgnomen:  # NC_000001.10:g.12345678T>A
+            gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
+            if variant["type"] == "snp":
+                gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
+                gnomad_data = variant["chromosome"] + "-" + re.sub('[<>]+', '-', ("-".join(gnomad_data)))  # 1-12345678-T-A
+                variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
+            elif variant["type"] in ["insertion", "deletion", "substitution"]:
+                gnomad_data = variant["chromosome"] + "-" + gnomad_data
+                variant['GnomadVariant'] = {variant["type"].capitalize(): gnomad_data}
+                # TODO: make link format correctly for "insertion", "deletion", "substitution" genomic variations
+        else:  # on rare occasions, fullGNomen is empty
+            variant['GnomadVariant'] = {variant["type"]: ''}
+
         # add VUS/variant info to patientdata
         variant.update(patient)
         db.insert_one(variant)

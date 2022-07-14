@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, redirect, url_for, flash
 from src import app, mongo, login_manager
 from flask_login import login_required, login_user, logout_user, current_user
 from src.forms import LoginForm, RegisterForm

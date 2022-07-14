@@ -3,6 +3,7 @@ from src import app, mongo
 from src.datatable import DataTablesServer
 from flask_login import login_required, current_user
 from bson import ObjectId
+from collections import OrderedDict
 from functools import wraps
 import json
 
@@ -11,8 +12,10 @@ import json
 variant_col = mongo.db.variant
 user_col = mongo.db.user
 
-columns = ['#', '_id', 'total']
-default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref", 
+# _id is the primary key on elements in a mongodb collection; _id is automatically indexed. 
+# Lookups specifying { _id: <someval> } refer to the _id index as their guide
+mongo_columns = ['#', '_id', 'total']
+default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
                   "genotype Patient", "genotype Mother", "genotype Father", "inheritedFrom", "GnomAD", "fullgnomen",
                   "transcript"]
 default_order = {"dn_no": 1, "gene": 1}
@@ -128,7 +131,7 @@ def patients():
 @login_required
 @diaggen_role_required
 def variants():
-    fields = columns
+    fields = mongo_columns
     return render_template('variants.html', fields=fields)
 
 
@@ -145,9 +148,12 @@ def all():
 def vus(id):
     try:
         ret = variant_col.find_one({"_id": ObjectId(id)})
+        # enable orderedDict to manipulate order of this dictionary before passing it to the VUS template
+        ordered_ret = OrderedDict(ret)
+        ordered_ret.move_to_end('chromosome', last=False) # sets chromosome at the top of VUS page
     except:
         print("problem " + id)
-    return render_template('vus.html', variant=ret)
+    return render_template('vus.html', variant=ordered_ret)
 
 
 @app.route('/_get_variant_data')
@@ -177,12 +183,11 @@ def get_all_data():
     index_column = "_id"
     collection = "variant"
     fields = all_fields
-    results = DataTablesServer(request, fields, index_column, collection).output_result_on_given_fields()
+    results = DataTablesServer(request, fields, index_column, collection).output_result_on_fields(field="given")
     return json.dumps(results, sort_keys=True, default=str)
-
 
 def get_data(group_by):
     index_column = "_id"
     collection = "variant"
-    results = DataTablesServer(request, columns, index_column, collection, group_by).output_result_on_queried_fields()
+    results = DataTablesServer(request, mongo_columns, index_column, collection, group_by).output_result_on_fields(field="queried")
     return json.dumps(results, sort_keys=True, default=str)

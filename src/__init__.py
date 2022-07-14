@@ -20,6 +20,5 @@ login_manager.login_message_category = "warning"
 # Create admin
 admin = Admin(app, name='VUSualizer admin', template_mode='bootstrap3')
 
-
-from . import *
-from .views import main, auth, admin_view
+# ignore PEP8/flake8 warning: flask import views folder after app creation
+from .views import main, auth, admin_view # noqa: F401
