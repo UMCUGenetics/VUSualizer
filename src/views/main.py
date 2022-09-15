@@ -12,13 +12,13 @@ import json
 variant_col = mongo.db.variant
 user_col = mongo.db.user
 
-# _id is the primary key on elements in a mongodb collection; _id is automatically indexed. 
+# _id is the primary key on elements in a mongodb collection; _id is automatically indexed.
 # Lookups specifying { _id: <someval> } refer to the _id index as their guide
 mongo_columns = ['#', '_id', 'total']
-default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
+default_fields = ["Details", "analysis_reference", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
                   "genotype Patient", "genotype Mother", "genotype Father", "inheritedFrom", "GnomAD", "fullgnomen",
                   "transcript"]
-default_order = {"dn_no": 1, "gene": 1}
+default_order = {"analysis_reference": 1, "gene": 1}
 variants = []
 
 
@@ -47,7 +47,7 @@ def redirect_url():
     return request.args.get('next') or request.referrer or url_for('index')
 
 
-all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "start", "stop", "exon", "protein", "classification",
+all_fields = ["analysis_reference", "gene", "fullgnomen", "chromosome", "start", "stop", "exon", "protein", "classification",
               "zygosity", "inheritanceMode", "inheritedFrom", "variantAssessment", "transcript"]
 
 
@@ -84,7 +84,7 @@ def check_if_user_active(usercheck):
 def index():
     total_count = variant_col.find().count()
     variant_count = group_and_count_on_field("$fullgnomen")
-    patient_count = group_and_count_on_field("$dn_no")
+    patient_count = group_and_count_on_field("$analysis_reference")
     gene_count = group_and_count_on_field("$gene")
     return render_template("index.html", v=variant_count, p=patient_count, g=gene_count, t=total_count)
 
@@ -97,7 +97,7 @@ def page_not_found(e):
 @app.route('/patient/<id>')
 @login_required
 def patient(id):
-    return render_individual_page("dn_no", id, "patient.html")
+    return render_individual_page("analysis_reference", id, "patient.html")
 
 
 @app.route('/gene/<id>')
@@ -173,7 +173,7 @@ def get_gene_data():
 @app.route('/_get_patient_data')
 @login_required
 def get_patient_data():
-    return get_data("dn_no")
+    return get_data("analysis_reference")
 
 
 @app.route('/_get_all_data')

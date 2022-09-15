@@ -35,11 +35,11 @@ def import_from_alissa(alissa_client, start_time, logger):
                                                lastUpdatedAfter=last_updated_on_mongoDB,  # '2020-01-01T00:00:00.000+0000'
                                                analysisPipelineName='ONB01',
                                                analysisType='INHERITANCE'):  # for testing [:x], x is number of iterations
-        analysis_report = alissa_client.get_analysis_report(analysis['id'])
-        if analysis['classificationTreeName'] and analysis_report:
+        # analysis_report = alissa_client.get_analysis_report(analysis['id'])
+        if analysis['classificationTreeName']:
             # retrieve basic info from Alissa about the analysis
-            patient_dn_no = analysis_report[0]['reportName'].split("_")[0]
-            logger.info('start Alissa retrieval of: %s with analysisID: %s' % (patient_dn_no, analysis['id']))
+            analysis_reference = analysis['reference'].replace(' ', '_')
+            logger.info('start Alissa retrieval of: %s with analysisID: %s' % (analysis_reference, analysis['id']))
             inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
             accession_number = alissa_client.get_patient(analysis['patientId'])['accessionNumber']
             export_id = alissa_client.post_inheritance_analyses_variants_export(analysis['id'],
@@ -57,16 +57,16 @@ def import_from_alissa(alissa_client, start_time, logger):
                     pass
                 except json.decoder.JSONDecodeError:
                     break
-            logger.info('Alissa retrieval completed of: %s' % patient_dn_no)
+            logger.info('Alissa retrieval completed of: %s' % analysis_reference)
             # sometimes there are no VUS marked or found within an analysis, then no info needs to be uploaded
             if vus_export == []:
-                logger.info('Patient %s, has no VUS marked/found. Not uploaded to MongoDB' % patient_dn_no)
+                logger.info('Analysis %s, has no VUS marked/found. Not uploaded to MongoDB' % analysis_reference)
             elif vus_export is None:
-                logger.error('Patient %s not uploaded, Alissa database temporarily not available' % patient_dn_no)
+                logger.error('Analysis %s not uploaded, Alissa database temporarily not available' % analysis_reference)
                 # TODO send (email) notification of this error
                 exit(1)
             else:
-                upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger)
+                upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, analysis_reference, vus_export, logger)
     # if latest date does not retrieve any analyses from Alissa, quit program and try later
     if analysis is None:
         logger.info('no new analysis in Alissa since last upload to VUSualizer')
@@ -74,32 +74,32 @@ def import_from_alissa(alissa_client, start_time, logger):
     db.replace_one({"version": 1}, {"lastUpdatedOn": start_time, "version": 1}, True)
 
 
-def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, patient_dn_no, vus_export, logger):
+def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, analysis_reference, vus_export, logger):
     '''Function, for parsing data to the MongoDB'''
     # connection with MongoDB and the correct database "vus" and collection "variant"
     mongo_client = pymongo.MongoClient(config.mongodb_localhost)
     db = mongo_client.vus.variant
 
-    # if DNnr already in mongoDB, check if updated an replace if neccesary
-    last_updated_on_mongoDB = db.find_one({"dn_no": patient_dn_no}, {"lastUpdatedOn": 1, "_id": 0})
+    # if analysis_reference already in mongoDB, check if updated an replace if neccesary
+    last_updated_on_mongoDB = db.find_one({"analysis_reference": analysis_reference}, {"lastUpdatedOn": 1, "_id": 0})
     if last_updated_on_mongoDB:
-        logger.info('dn_no: %s already present' % patient_dn_no)
+        logger.info('analysis_reference: %s already present' % analysis_reference)
         last_updated_on_mongoDB = last_updated_on_mongoDB['lastUpdatedOn']
         last_updated_on_Alissa = inheritance_analysis['lastUpdatedOn']
         if last_updated_on_Alissa == last_updated_on_mongoDB:
-            logger.info('%s already in database, lastUpdatedOn Alissa is the same' % patient_dn_no)
+            logger.info('%s already in database, lastUpdatedOn Alissa is the same' % analysis_reference)
             return
         elif last_updated_on_Alissa > last_updated_on_mongoDB:
-            db.delete_many({"dn_no": patient_dn_no})
-            logger.info('removed: %s from database, start replacing with newer version' % patient_dn_no)
+            db.delete_many({"analysis_reference": analysis_reference})
+            logger.info('removed: %s from database, start replacing with newer version' % analysis_reference)
         elif last_updated_on_Alissa < last_updated_on_mongoDB:
-            logger.error('lastUpdatedOn older than within the database for %s, this should not happen' % patient_dn_no)
+            logger.error('lastUpdatedOn older than within the database for %s, this should not happen' % analysis_reference)
             # TODO send (email) notification of this error
 
     # get all relevant info from one patient into one dictionary.
     patient = {}
-    patient["dn_no"] = patient_dn_no
-    logger.info('start uploading to mongodb: %s' % patient_dn_no)
+    patient["analysis_reference"] = analysis_reference
+    logger.info('start uploading to mongodb: %s' % analysis_reference)
     patient["patient_accession_no"] = accession_number
     patient.update(inheritance_analysis)
     patient["analysis"] = patient.pop("reference")
@@ -128,7 +128,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
             fullgnomen = variant['platformDatasets']['HGVS genomic-level nomenclature (fullGNomen)']
             variant['fullgnomen'] = fullgnomen  # NC_000001.10:g.12345678T>A
         except (KeyError, TypeError):
-            logger.error('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % patient_dn_no)
+            logger.error('Variant in patient %s has no platformDatasets and fullGNomen, variant not uploaded' % analysis_reference)
             continue
         if fullgnomen:  # NC_000001.10:g.12345678T>A
             gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
@@ -146,7 +146,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, p
         # add VUS/variant info to patientdata
         variant.update(patient)
         db.insert_one(variant)
-    logger.info('finished uploading to mongodb: %s' % patient_dn_no)
+    logger.info('finished uploading to mongodb: %s' % analysis_reference)
 
 
 if __name__ == '__main__':

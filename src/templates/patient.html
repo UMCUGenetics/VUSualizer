@@ -36,7 +36,7 @@
                                 {% set param = {f: variant[f]} %}
                                 <td>
                                     <!-- Items with links -->
-                                    {% if f == "dn_no" %}
+                                    {% if f == "analysis_reference" %}
                                     <a href={{ url_for('patient', id=variant[f]) }}>{{ variant[f] }}</a>
                                     {% elif f == "gene" %}
                                     <a href={{ url_for('gene', id=variant[f]) }}>{{ variant[f] }}</a>
