@@ -148,14 +148,14 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, a
             )
             continue
         if fullgnomen:  # NC_000001.10:g.12345678T>A
-            gnomad_data = re.split(':[a-z].', fullgnomen)[1]  # 123456789T>A
+            gnomad_id = fullgnomen.split(':g.')[1]  # 123456789T>A
             if variant['type'] == 'snp':
-                gnomad_data = [c for c in re.split(r'([-+]?\d*\.\d+|\d+)', gnomad_data) if c]  # 123456789T>A
-                gnomad_data = variant['chromosome'] + '-' + re.sub('[<>]+', '-', ('-'.join(gnomad_data)))  # 1-12345678-T-A
-                variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_data}
+                gnomad_id = re.match('(?P<pos>\d+)(?P<ref>[A-Z])>(?P<alt>[A-Z])', gnomad_id, re.IGNORECASE).groupdict()  # {'pos': '12345678', 'ref': 'T', 'alt': 'A'}
+                gnomad_id = f"{variant['chromosome']}-{gnomad_id['pos']}-{gnomad_id['ref']}-{gnomad_id['alt']}"
+                variant['GnomadVariant'] = {'Single nucleotide variant': gnomad_id}
             elif variant['type'] in ['insertion', 'deletion', 'substitution']:
-                gnomad_data = variant['chromosome'] + '-' + gnomad_data
-                variant['GnomadVariant'] = {variant['type'].capitalize(): gnomad_data}
+                gnomad_id = gnomad_id = f"{variant['chromosome']}-{gnomad_id}"
+                variant['GnomadVariant'] = {variant['type'].capitalize(): gnomad_id}
                 # TODO: make link format correctly for 'insertion', 'deletion', 'substitution' genomic variations
         else:  # on rare occasions, fullGNomen is empty
             variant['GnomadVariant'] = {variant['type']: ''}
