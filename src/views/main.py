@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for
 from src import app, mongo
 from src.datatable import DataTablesServer
-from flask_login import login_required, current_user
+from flask_login import current_user
 from bson import ObjectId
 from collections import OrderedDict
 from functools import wraps
@@ -23,7 +23,7 @@ variants = []
 
 
 def login_required(f):
-    '''Wrapper around the login_required() function of Flask, to also check the active status of the user'''
+    '''Decorator to check login status of user'''
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.is_authenticated is False or check_if_user_active(current_user):
@@ -33,7 +33,7 @@ def login_required(f):
 
 
 def diaggen_role_required(f):
-    '''Wrapper around the login_required() function of Flask, to also check the current role of the user'''
+    '''Decorator to check role of user'''
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.role not in ['ROLE_DIAGGEN', 'ROLE_ADMIN']:
@@ -150,7 +150,7 @@ def vus(id):
         ret = variant_col.find_one({"_id": ObjectId(id)})
         # enable orderedDict to manipulate order of this dictionary before passing it to the VUS template
         ordered_ret = OrderedDict(ret)
-        ordered_ret.move_to_end('chromosome', last=False) # sets chromosome at the top of VUS page
+        ordered_ret.move_to_end('chromosome', last=False)  # sets chromosome at the top of VUS page
     except:
         print("problem " + id)
     return render_template('vus.html', variant=ordered_ret)
@@ -186,8 +186,15 @@ def get_all_data():
     results = DataTablesServer(request, fields, index_column, collection).output_result_on_fields(field="given")
     return json.dumps(results, sort_keys=True, default=str)
 
+
 def get_data(group_by):
     index_column = "_id"
     collection = "variant"
-    results = DataTablesServer(request, mongo_columns, index_column, collection, group_by).output_result_on_fields(field="queried")
+    results = DataTablesServer(
+        request,
+        mongo_columns,
+        index_column,
+        collection,
+        group_by
+    ).output_result_on_fields(field="queried")
     return json.dumps(results, sort_keys=True, default=str)
