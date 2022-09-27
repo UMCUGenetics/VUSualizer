@@ -27,7 +27,7 @@ class DataTablesServer:
         uwu = ""
         if col == "fullgnomen":
             uwu = '<a href="/variant/{0}">{0}</a>'.format(val)
-        elif col == "dn_no":
+        elif col == "analysis_reference":
             uwu = '<a href="/patient/{0}">{0}</a>'.format(val)
         elif col == "gene":
             uwu = '<a href="/gene/{0}">{0}</a>'.format(val)

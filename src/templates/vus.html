@@ -17,7 +17,7 @@
 ('GnomadVariant', 'https://gnomad.broadinstitute.org/variant/', 'gnomAD')
 ] -%}
 {% set link_list = [
-'omimRefs', 'omimMorbidRefs', 'dbSNP', 'transcript', 'gene', 'Single nucleotide variant', 
+'omimRefs', 'omimMorbidRefs', 'dbSNP', 'transcript', 'gene', 'Single nucleotide variant',
 'Insertion', 'Deletion', 'Substitution', 'COSMIC Id (cosmicId)', 'Gene (ensemblGene)'
 ] -%}
 
@@ -28,7 +28,7 @@
 
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">VUS: {{ variant.dn_no }}_{{ variant.gene }}</h1>
+        <h1 class="h3 mb-0 text-gray-800">VUS: {{ variant.analysis_reference }}_{{ variant.gene }}</h1>
     </div>
 
     <!-- Content Row -->
@@ -64,7 +64,7 @@
 
                                 {% else %}
                                 <td>{{ k.replace("_", " ").replace("\uff0e", ".") }}</td>
-                                {% if k == "dn_no" %}
+                                {% if k == "analysis_reference" %}
                                 <td><a href={{ url_for('patient', id=v) }}>{{ v }}</a></td>
                                 {% elif k == "gene" %}
                                 <td><a href={{ url_for('gene', id=v) }}>{{ v }}</a></td>

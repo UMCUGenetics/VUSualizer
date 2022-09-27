@@ -36,7 +36,7 @@
                                 {% set param = {f: variant[f]} %}
                                 <td>
                                     <!-- Items with links -->
-                                    {% if f == "dn_no" %}
+                                    {% if f == "analysis_reference" %}
                                     <a href={{ url_for('patient', id=variant[f]) }}>{{ variant[f] }}</a>
                                     {% elif f == "gene" %}
                                     <a href={{ url_for('gene', id=variant[f]) }}>{{ variant[f] }}</a>
@@ -81,7 +81,7 @@
                                     {% elif f == "GnomAD" %}
                                         {% for key, value in variant["GnomadVariant"].items() %}
                                         {% if key == "Single nucleotide variant" %}
-                                        <a href='https://gnomad.broadinstitute.org/variant/{{ value }}' target="_blank">{{ key }}</a>
+                                        <a href='https://gnomad.broadinstitute.org/variant/{{ value }}' target="_blank">{{ value }}</a>
                                         {% endif %}
                                         {% endfor %}
                                     {% else %}
