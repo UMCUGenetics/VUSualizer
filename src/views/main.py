@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for
 from src import app, mongo
 from src.datatable import DataTablesServer
-from flask_login import login_required, current_user
+from flask_login import current_user
 from bson import ObjectId
 from collections import OrderedDict
 from functools import wraps
@@ -12,18 +12,18 @@ import json
 variant_col = mongo.db.variant
 user_col = mongo.db.user
 
-# _id is the primary key on elements in a mongodb collection; _id is automatically indexed. 
+# _id is the primary key on elements in a mongodb collection; _id is automatically indexed.
 # Lookups specifying { _id: <someval> } refer to the _id index as their guide
 mongo_columns = ['#', '_id', 'total']
-default_fields = ["Details", "dn_no", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
+default_fields = ["Details", "analysis_reference", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
                   "genotype Patient", "genotype Mother", "genotype Father", "inheritedFrom", "GnomAD", "fullgnomen",
                   "transcript"]
-default_order = {"dn_no": 1, "gene": 1}
+default_order = {"analysis_reference": 1, "gene": 1}
 variants = []
 
 
 def login_required(f):
-    '''Wrapper around the login_required() function of Flask, to also check the active status of the user'''
+    '''Decorator to check login status of user'''
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.is_authenticated is False or check_if_user_active(current_user):
@@ -33,7 +33,7 @@ def login_required(f):
 
 
 def diaggen_role_required(f):
-    '''Wrapper around the login_required() function of Flask, to also check the current role of the user'''
+    '''Decorator to check role of user'''
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.role not in ['ROLE_DIAGGEN', 'ROLE_ADMIN']:
@@ -47,7 +47,7 @@ def redirect_url():
     return request.args.get('next') or request.referrer or url_for('index')
 
 
-all_fields = ["dn_no", "gene", "fullgnomen", "chromosome", "start", "stop", "exon", "protein", "classification",
+all_fields = ["analysis_reference", "gene", "fullgnomen", "chromosome", "start", "stop", "exon", "protein", "classification",
               "zygosity", "inheritanceMode", "inheritedFrom", "variantAssessment", "transcript"]
 
 
@@ -84,7 +84,7 @@ def check_if_user_active(usercheck):
 def index():
     total_count = variant_col.find().count()
     variant_count = group_and_count_on_field("$fullgnomen")
-    patient_count = group_and_count_on_field("$dn_no")
+    patient_count = group_and_count_on_field("$analysis_reference")
     gene_count = group_and_count_on_field("$gene")
     return render_template("index.html", v=variant_count, p=patient_count, g=gene_count, t=total_count)
 
@@ -97,7 +97,7 @@ def page_not_found(e):
 @app.route('/patient/<id>')
 @login_required
 def patient(id):
-    return render_individual_page("dn_no", id, "patient.html")
+    return render_individual_page("analysis_reference", id, "patient.html")
 
 
 @app.route('/gene/<id>')
@@ -150,7 +150,7 @@ def vus(id):
         ret = variant_col.find_one({"_id": ObjectId(id)})
         # enable orderedDict to manipulate order of this dictionary before passing it to the VUS template
         ordered_ret = OrderedDict(ret)
-        ordered_ret.move_to_end('chromosome', last=False) # sets chromosome at the top of VUS page
+        ordered_ret.move_to_end('chromosome', last=False)  # sets chromosome at the top of VUS page
     except:
         print("problem " + id)
     return render_template('vus.html', variant=ordered_ret)
@@ -173,7 +173,7 @@ def get_gene_data():
 @app.route('/_get_patient_data')
 @login_required
 def get_patient_data():
-    return get_data("dn_no")
+    return get_data("analysis_reference")
 
 
 @app.route('/_get_all_data')
@@ -186,8 +186,15 @@ def get_all_data():
     results = DataTablesServer(request, fields, index_column, collection).output_result_on_fields(field="given")
     return json.dumps(results, sort_keys=True, default=str)
 
+
 def get_data(group_by):
     index_column = "_id"
     collection = "variant"
-    results = DataTablesServer(request, mongo_columns, index_column, collection, group_by).output_result_on_fields(field="queried")
+    results = DataTablesServer(
+        request,
+        mongo_columns,
+        index_column,
+        collection,
+        group_by
+    ).output_result_on_fields(field="queried")
     return json.dumps(results, sort_keys=True, default=str)
