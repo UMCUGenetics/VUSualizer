@@ -161,6 +161,11 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, a
         else:  # on rare occasions, fullGNomen is empty
             variant['GnomadVariant'] = {variant['type']: ''}
 
+        # Remove . form externalDatabases keys
+        external_databases = variant['externalDatabases']
+        external_databases = {key.replace('.', '_'): value for key, value in external_databases.items()}
+        variant['externalDatabases'] = external_databases
+
         # add VUS/variant info to patientdata
         variant.update(patient)
         db.insert_one(variant)
