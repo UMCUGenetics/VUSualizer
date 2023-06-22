@@ -39,8 +39,7 @@ def import_from_alissa(alissa_client, start_time, logger):
         analysisType='INHERITANCE'
     ):
         if analysis['classificationTreeName']:
-            analysis_reference = analysis['reference'].replace(' ', '_')
-            logger.info(f"Start Alissa retrieval of: {analysis_reference} with analysisID: {analysis['id']}")
+            logger.info(f"Start Alissa retrieval of: {analysis['reference']} with analysisID: {analysis['id']}")
 
             # retrieve basic info from Alissa about the analysis
             inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
@@ -62,16 +61,18 @@ def import_from_alissa(alissa_client, start_time, logger):
                     pass
                 except json.decoder.JSONDecodeError:
                     break
-            logger.info(f"Alissa retrieval completed of: {analysis_reference}")
+            logger.info(f"Alissa retrieval completed of: {analysis['reference']}")
 
             # sometimes there are no VUS marked or found within an analysis, then no info needs to be uploaded
             if vus_export == []:
-                logger.info(f"Analysis {analysis_reference}, has no VUS marked/found. Not uploaded to MongoDB")
+                logger.info(f"Analysis {analysis['reference']}, has no VUS marked/found. Not uploaded to MongoDB")
             elif vus_export is None:
-                logger.error(f"Analysis {analysis_reference} not uploaded, Alissa database temporarily not available")
+                logger.error(f"Analysis {analysis['reference']} not uploaded, Alissa database temporarily not available")
                 # TODO send (email) notification of this error
                 exit(1)
             else:
+                # Make analysis_reference compatible with webtool uri and upload to mongoDB
+                analysis_reference = re.sub(" |/", '_', analysis['reference'])  # replace space and / with _
                 upload_to_mongodb(
                     inheritance_analysis,
                     accession_number,
@@ -159,6 +160,11 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, a
                 # TODO: make link format correctly for 'insertion', 'deletion', 'substitution' genomic variations
         else:  # on rare occasions, fullGNomen is empty
             variant['GnomadVariant'] = {variant['type']: ''}
+
+        # Remove . form externalDatabases keys
+        external_databases = variant['externalDatabases']
+        external_databases = {key.replace('.', '_'): value for key, value in external_databases.items()}
+        variant['externalDatabases'] = external_databases
 
         # add VUS/variant info to patientdata
         variant.update(patient)
