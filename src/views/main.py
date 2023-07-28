@@ -14,10 +14,10 @@ user_col = mongo.db.user
 
 # _id is the primary key on elements in a mongodb collection; _id is automatically indexed.
 # Lookups specifying { _id: <someval> } refer to the _id index as their guide
-mongo_columns = ['#', '_id', 'total']
+mongo_columns = ['#', '_id', 'total', 'vus_is_empty']
 default_fields = ["Details", "analysis_reference", "gene", "Position", "inheritanceMode", "cdna", "protein", "effect", "ref",
                   "genotype Patient", "genotype Mother", "genotype Father", "inheritedFrom", "GnomAD", "fullgnomen",
-                  "transcript"]
+                  "transcript", "vus_is_empty"]
 default_order = {"analysis_reference": 1, "gene": 1}
 variants = []
 
@@ -48,7 +48,7 @@ def redirect_url():
 
 
 all_fields = ["analysis_reference", "gene", "fullgnomen", "chromosome", "start", "stop", "exon", "protein", "classification",
-              "zygosity", "inheritanceMode", "inheritedFrom", "variantAssessment", "transcript"]
+              "zygosity", "inheritanceMode", "inheritedFrom", "variantAssessment", "transcript", "vus_is_empty"]
 
 
 # START HELPER FUNCTIONS
@@ -67,7 +67,8 @@ def render_individual_page(group_by, id, template):
     variants = variant_col.find({group_by: id})
     # remove group_by from the fields list as its displayed at top of page and redundant for every row
     fields = list(filter(lambda x: x != group_by, default_fields))
-    return render_template(template, variants=variants, fields=fields, id=id)
+    vus_is_empty = list(variants)[0]["vus_is_empty"]
+    return render_template(template, variants=variants, fields=fields, id=id, vus_is_empty=vus_is_empty)
 
 
 def check_if_user_active(usercheck):
