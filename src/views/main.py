@@ -6,6 +6,7 @@ from bson import ObjectId
 from collections import OrderedDict
 from functools import wraps
 import json
+import copy
 
 
 # make connection with MongoDB data
@@ -65,9 +66,10 @@ def group_and_count_on_field(field):
 def render_individual_page(group_by, id, template):
     '''render individual page, for example patients-->patient or variants-->variant'''
     variants = variant_col.find({group_by: id})
+    variants_deepcopy = copy.deepcopy(variants)
     # remove group_by from the fields list as its displayed at top of page and redundant for every row
     fields = list(filter(lambda x: x != group_by, default_fields))
-    vus_is_empty = list(variants)[0]["vus_is_empty"]
+    vus_is_empty = list(variants_deepcopy)[0]["vus_is_empty"]
     return render_template(template, variants=variants, fields=fields, id=id, vus_is_empty=vus_is_empty)
 
 
