@@ -140,18 +140,29 @@
                                         "externalDatabases"] %}
                                         {% for k, v in var.items() %}
                                         {% if v != "" and k in link_list %}
-                                        <td>{{ k }}</td>
-                                        <td>{{ v }}
+                                        <td class="dbname">{{ k }}
+                                        <td class="flex jcsb">{{ v }}
+                                        <div class="dropdown show">
+                                                <button class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    View on ...
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+
                                             {% for id, url, name in external_links %}
                                             {% if k == id and v != "" %}
                                             <!-- if key name equal to id in external_links -->
-                                            <a href="{{ url|e }}{{ v }}" target="_blank">
-                                                <button type="button" class="btn btn-primary btn-sm float-right">View
-                                                    on {{ name }}</button>
-                                            </a>
+                                                <a class="dropdown-item" href="{{ url|e }}{{ v }}" target="_blank"
+                                                        title="View on {{ name }}">{{ name }}&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+  <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+</svg></a>
+                                                        <div class="dropdown-divider"></div>
                                             {% endif %}
                                             {% endfor %}
+                                            </div>
+                                        </div>
                                             {% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                     {% endif %}
@@ -159,16 +170,27 @@
                                     <tr>
                                         {% if k in ["gene", "transcript"] and var != "" %}
                                         <td>{{ k }}</td>
-                                        <td>{{ var }}
-                                            {% for id, url, name in external_links %}
-                                            {% if k == id and var != "" %}
-                                            <!-- if key name equal to id in external_links -->
-                                            <a href="{{ url|e }}{{ var }}" target="_blank">
-                                                <button type="button" class="btn btn-primary btn-sm float-right">View
-                                                    on {{ name }}</button>
-                                            </a>
-                                            {% endif %}
-                                            {% endfor %}
+                                        <td class="flex jcsb">{{ var }}
+
+                                            <div class="dropdown show">
+                                                <button class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    View on ...
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                                                  {% for id, url, name in external_links %}
+                                                    {% if k == id and var != "" %}
+                                                    <!-- if key name equal to id in external_links -->
+                                                        <a class="dropdown-item" href="{{ url|e }}{{ var }}" target="_blank"
+                                                        title="View on {{ name }}">{{ name }}&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+  <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+</svg></a>
+                                                        <div class="dropdown-divider"></div>
+                                                    {% endif %}
+                                                    {% endfor %}
+                                              </div>
+                                            </div>
+                                        </td>
                                     </tr>
                                     {% endif %}
                                     </td>
