@@ -138,7 +138,7 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, a
     # extract information from the VUS/variant data and add to 'patient'
     # Set default tot prevent empty field
     patient['vus_is_empty'] = False
-    if vus_export == []:
+    if not vus_export:
         # If there is no VUS found for this analysis / patient, upload only the patient data in the database
         logger.info(f"Analysis {patient['analysis_reference']}, has no VUS marked/found. Upload empty VUS warning to MongoDB")
         patient['vus_is_empty'] = True
