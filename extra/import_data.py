@@ -38,7 +38,7 @@ def import_from_alissa(alissa_client, start_time, logger):
         analysisPipelineName='ONB01',
         analysisType='INHERITANCE'
     ):
-        vus_is_empty = False
+
         if analysis['classificationTreeName']:
             logger.info(f"Start Alissa retrieval of: {analysis['reference']} with analysisID: {analysis['id']}")
 
@@ -64,10 +64,6 @@ def import_from_alissa(alissa_client, start_time, logger):
                     break
             logger.info(f"Alissa retrieval completed of: {analysis['reference']}")
 
-            # sometimes there are no VUS marked or found within an analysis, then no info needs to be uploaded
-            if vus_export == []:
-                logger.info(f"Analysis {analysis['reference']}, has no VUS marked/found. Upload empty VUS warning to MongoDB")
-                vus_is_empty = True
             if vus_export is None:
                 logger.error(f"Analysis {analysis['reference']} not uploaded, Alissa database temporarily not available")
                 # TODO send (email) notification of this error
@@ -82,7 +78,6 @@ def import_from_alissa(alissa_client, start_time, logger):
                     analysis_reference,
                     vus_export,
                     logger,
-                    vus_is_empty
                 )
 
     # if latest date does not retrieve any analyses from Alissa, quit program and try later
@@ -92,7 +87,7 @@ def import_from_alissa(alissa_client, start_time, logger):
     db.replace_one({'version': 1}, {'lastUpdatedOn': start_time, 'version': 1}, True)
 
 
-def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, analysis_reference, vus_export, logger, vus_is_empty):
+def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, analysis_reference, vus_export, logger):
     '''Function, for parsing data to the MongoDB'''
 
     # connection with MongoDB and the correct database "vus" and collection "variant"
@@ -123,7 +118,6 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, a
     patient.update(inheritance_analysis)
     patient['analysis'] = patient.pop('reference')
     patient['platform_dataset'] = analyis_sources['platformDataSet']['info']
-    patient['vus_is_empty'] = vus_is_empty
 
     # changes the format of the annotation sources from Alissa, to fit in MongoDB and resemble the old O-schijf format
     externalSources_dict = {}
@@ -142,8 +136,12 @@ def upload_to_mongodb(inheritance_analysis, accession_number, analyis_sources, a
     patient['annotation_sources'] = externalSources_dict  # add previous section to total patient info
 
     # extract information from the VUS/variant data and add to 'patient'
-    if vus_is_empty:
+    # Set default tot prevent empty field
+    patient['vus_is_empty'] = False
+    if vus_export == []:
         # If there is no VUS found for this analysis / patient, upload only the patient data in the database
+        logger.info(f"Analysis {patient['analysis_reference']}, has no VUS marked/found. Upload empty VUS warning to MongoDB")
+        patient['vus_is_empty'] = True
         db.insert_one(patient)
 
     for variant in vus_export:
