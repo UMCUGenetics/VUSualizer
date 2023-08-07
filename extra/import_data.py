@@ -32,53 +32,54 @@ def import_from_alissa(alissa_client, start_time, logger):
 
     # retrieving data from Alissa
     analysis = None
-    for analysis in alissa_client.get_analyses(
-        status='COMPLETED',
-        lastUpdatedAfter=last_updated_on_mongoDB,  # '2020-01-01T00:00:00.000+0000'
-        analysisPipelineName='ONB01',
-        analysisType='INHERITANCE'
-    ):
+    for analysis_pipeline_name in config.alissa_analysis_pipeline_names:
+        for analysis in alissa_client.get_analyses(
+            status='COMPLETED',
+            lastUpdatedAfter=last_updated_on_mongoDB,  # '2020-01-01T00:00:00.000+0000'
+            analysisPipelineName=analysis_pipeline_name,
+            analysisType='INHERITANCE'
+        ):
 
-        if analysis['classificationTreeName']:
-            logger.info(f"Start Alissa retrieval of: {analysis['reference']} with analysisID: {analysis['id']}")
+            if analysis['classificationTreeName']:
+                logger.info(f"Start Alissa retrieval of: {analysis['reference']} with analysisID: {analysis['id']}")
 
-            # retrieve basic info from Alissa about the analysis
-            inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
-            accession_number = alissa_client.get_patient(analysis['patientId'])['accessionNumber']
-            analyis_sources = alissa_client.get_analysis_sources(analysis['id'])
+                # retrieve basic info from Alissa about the analysis
+                inheritance_analysis = alissa_client.get_inheritance_analyses(analysis['id'])
+                accession_number = alissa_client.get_patient(analysis['patientId'])['accessionNumber']
+                analyis_sources = alissa_client.get_analysis_sources(analysis['id'])
 
-            # retrieve the VUS/GUS info based on the analysis ID
-            export_id = alissa_client.post_inheritance_analyses_variants_export(
-                analysis['id'],
-                marked_review=True,
-                marked_include_report=False
-            )['exportId']
-            vus_export = None
-            while vus_export is None:
-                try:
-                    time.sleep(5)  # 5 sec delay to request exported report.
-                    vus_export = alissa_client.get_inheritance_analyses_variants_export(analysis['id'], export_id)
-                except HTTPError:
-                    pass
-                except json.decoder.JSONDecodeError:
-                    break
-            logger.info(f"Alissa retrieval completed of: {analysis['reference']}")
+                # retrieve the VUS/GUS info based on the analysis ID
+                export_id = alissa_client.post_inheritance_analyses_variants_export(
+                    analysis['id'],
+                    marked_review=True,
+                    marked_include_report=False
+                )['exportId']
+                vus_export = None
+                while vus_export is None:
+                    try:
+                        time.sleep(5)  # 5 sec delay to request exported report.
+                        vus_export = alissa_client.get_inheritance_analyses_variants_export(analysis['id'], export_id)
+                    except HTTPError:
+                        pass
+                    except json.decoder.JSONDecodeError:
+                        break
+                logger.info(f"Alissa retrieval completed of: {analysis['reference']}")
 
-            if vus_export is None:
-                logger.error(f"Analysis {analysis['reference']} not uploaded, Alissa database temporarily not available")
-                # TODO send (email) notification of this error
-                exit(1)
-            else:
-                # Make analysis_reference compatible with webtool uri and upload to mongoDB
-                analysis_reference = re.sub(" |/", '_', analysis['reference'])  # replace space and / with _
-                upload_to_mongodb(
-                    inheritance_analysis,
-                    accession_number,
-                    analyis_sources,
-                    analysis_reference,
-                    vus_export,
-                    logger,
-                )
+                if vus_export is None:
+                    logger.error(f"Analysis {analysis['reference']} not uploaded, Alissa database temporarily not available")
+                    # TODO send (email) notification of this error
+                    exit(1)
+                else:
+                    # Make analysis_reference compatible with webtool uri and upload to mongoDB
+                    analysis_reference = re.sub(" |/", '_', analysis['reference'])  # replace space and / with _
+                    upload_to_mongodb(
+                        inheritance_analysis,
+                        accession_number,
+                        analyis_sources,
+                        analysis_reference,
+                        vus_export,
+                        logger,
+                    )
 
     # if latest date does not retrieve any analyses from Alissa, quit program and try later
     if analysis is None:
