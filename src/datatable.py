@@ -113,7 +113,10 @@ class DataTablesServer:
                 "$group": {
                     "_id": "$" + self.group_by,
                     "total": {
-                        "$sum": 1
+                        "$sum": {
+                            # If the row has a positive vus_is_empty field, do not count
+                            "$cond": ["$vus_is_empty", 0, 1]
+                        }
                     }
                 }
             }
