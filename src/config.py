@@ -21,3 +21,6 @@ DEBUG_TB_PANELS = (
     'flask_debugtoolbar.panels.logger.LoggingPanel',
     'flask_mongoengine.panels.MongoDebugPanel'
 )
+
+# gnomad settings
+GNOMAD_URI_SUFFIX = '?dataset=gnomad_r2_1'
