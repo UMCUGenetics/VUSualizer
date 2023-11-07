@@ -89,7 +89,7 @@
                                     {% elif f == "GnomAD" %}
                                         {% for key, value in variant["GnomadVariant"].items() %}
                                         {% if key == "Single nucleotide variant" %}
-                                        <a href='https://gnomad.broadinstitute.org/variant/{{ value }}' target="_blank">{{ value }}</a>
+                                        <a href='https://gnomad.broadinstitute.org/variant/{{ value }}{{config.GNOMAD_URI_SUFFIX}}' target="_blank">{{ value }}</a>
                                         {% endif %}
                                         {% endfor %}
                                     {% else %}
