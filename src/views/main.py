@@ -85,7 +85,7 @@ def check_if_user_active(usercheck):
 # app.route functions
 @app.route('/')
 def index():
-    total_count = variant_col.find().count()
+    total_count = variant_col.count_documents({})
     variant_count = group_and_count_on_field("$fullgnomen")
     patient_count = group_and_count_on_field("$analysis_reference")
     gene_count = group_and_count_on_field("$gene")
