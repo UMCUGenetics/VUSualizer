@@ -4,8 +4,8 @@
 
 > A web interface that allows searching through Variant of Unknown Significance (VUS).
 
-Important dependencies: 
-- [Python 3.6.8 or higher](https://www.python.org/)
+Important dependencies:
+- [Python 3.11](https://www.python.org/)
   - [Flask](https://pypi.org/project/Flask/)
   - [Flask-PyMongo](https://pypi.org/project/Flask-PyMongo/)
   - [Flask-Login]()
@@ -14,7 +14,7 @@ Important dependencies:
 - [alissa_interpret_client](https://github.com/UMCUGenetics/alissa_interpret_client)
 
 
-## Application Structure 
+## Application Structure
 ```
 .
 |──────run.py - used to run the flask app, also doubles as .wsgi file
@@ -48,7 +48,7 @@ There are some "apis" that datatables.js interacts with. They are accessed throu
 - /_get_gene_data
 - /_get_patient_data
 
-These urls are handled in main.py. The program then uses the DataTablesServer class from datatable.py to query the database and return the data back to datatables.js to create a browsable table. 
+These urls are handled in main.py. The program then uses the DataTablesServer class from datatable.py to query the database and return the data back to datatables.js to create a browsable table.
 
 
 ## Installation
@@ -74,7 +74,7 @@ $ brew services start mongodb-community@4.2
 ```
 $ (venv) python import_data.py
 ```
-6. Add crontab to automatically check Alissa for new analyses (example shown below. every day on 3AM). This needs to be done with the admin user of the server. 
+6. Add crontab to automatically check Alissa for new analyses (example shown below. every day on 3AM). This needs to be done with the admin user of the server.
 ```
 $ 0 3 * * * /path/to/VUSualizer/extra/import_data.py >> /path/to/VUSualizer/extra/cronlogs.log 2>&1
 ```
@@ -82,17 +82,17 @@ $ 0 3 * * * /path/to/VUSualizer/extra/import_data.py >> /path/to/VUSualizer/extr
 ## Run for development
 Activate venv and then start the app
 ```
-$ source ./venv/bin/activate
-$ python run.py
+source venv/bin/activate
+flask run
 ```
 ## Run for production (apache required)
 ```
-$ mod_wsgi-express start-server run.py
+gunicorn -w 4 src:app
 ```
 
 ## Run on local machine
 1. Configure the config.py (in extra folder) for VUSualizer location (required) and Alissa credentials (not required for running app)
-2. If development for import_data.py (not required for running app) --> 
+2. If development for import_data.py (not required for running app) -->
   - Change shebang python to ```#!/usr/bin/env python3``` or local equivalent
   - Change filename parameter in logging_config.yml to correct local path
 3. Activate venv
