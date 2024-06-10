@@ -17,7 +17,6 @@ def login():
     if form.validate_on_submit():
         user = User.get(form.email.data.strip())  # strip to remove any excess spaces
         if user:
-            print(user)
             if check_password_hash(user.password, form.password.data):
                 login_user(user, remember=form.remember_me.data)
                 return redirect(url_for('account'))

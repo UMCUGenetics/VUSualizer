@@ -36,4 +36,4 @@ class User(UserMixin):
         return self.login
 
     def save_to_db(self):
-        mongo.db.user.insert(self.__dict__)
+        mongo.db.user.insert_one(self.__dict__)
